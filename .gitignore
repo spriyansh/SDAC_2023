@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+course_data/HandsOn1_OmicsBox_Count_Tables/
+
+course_data/HandsOn3_SingleCell_Data_QC/setty_rep1/*.gz
+course_data/HandsOn3_SingleCell_Data_QC/processed_data/*.h5seurat
+course_data/HandsOn3_SingleCell_Data_QC/data_preparation/*.h5seurat
+
+course_data/HandsOn4_CellType_Analysis/bonemarrowref.SeuratData_1.0.0.tar.gz
+course_data/HandsOn4_CellType_Analysis/processed_data/*
+course_data/HandsOn4_CellType_Analysis/data_preparation/*.h5seurat
