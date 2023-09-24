@@ -1,0 +1,1099 @@
+1695579630013:knitr::opts_chunk$set(echo = TRUE)
+1695579630115:library(Seurat)
+1695579633348:library(SeuratData)
+1695579645120:library(SeuratDisk)
+1695579645946:library(SingleCellExperiment)
+1695579651192:library(Azimuth)
+1695579651399:library(scran)
+1695579652472:library(scater)
+1695579652596:library(miloR)
+1695579659243:if(!"bonemarrowref.SeuratData" %in% installed.packages()[,"Package"]){
+1695579659248:install.packages("bonemarrowref.SeuratData_1.0.0.tar.gz",
+1695579659250:repos = NULL, type = "source")
+1695579659251:}
+1695579681833:library(bonemarrowref.SeuratData)
+1695580068080:library(bonemarrowref.SeuratData)
+1695580073410:knitr::opts_chunk$set(echo = TRUE)
+1695580073541:library(Seurat)
+1695580073543:library(SeuratData)
+1695580073544:library(SeuratDisk)
+1695580073546:library(SingleCellExperiment)
+1695580073552:library(Azimuth)
+1695580073553:library(scran)
+1695580073554:library(scater)
+1695580073555:library(miloR)
+1695580073564:data_dir <- c("HandsOn4_CellType_Analysis/")
+1695580073568:setty_seurat <- LoadH5Seurat(paste0("HandsOn3_SingleCell_Data_QC/",
+1695580073569:"processed_data/setty_seurat_clustered.h5seurat"))
+1695580081609:library(Seurat)
+1695580081615:library(SeuratData)
+1695580081617:library(SeuratDisk)
+1695580081619:library(SingleCellExperiment)
+1695580081621:library(Azimuth)
+1695580081623:library(scran)
+1695580081624:library(scater)
+1695580081625:library(miloR)
+1695580093060:setty_seurat <- LoadH5Seurat(paste0("../HandsOn3_SingleCell_Data_QC/",
+1695580093063:"processed_data/setty_seurat_clustered.h5seurat"))
+1695580121197:available_data <- AvailableData()
+1695580132192:available_data[grep("Azimuth", available_data[, 3]), 1:3]
+1695580142271:if(!"bonemarrowref.SeuratData" %in% installed.packages()[,"Package"]){
+1695580142276:install.packages("bonemarrowref.SeuratData_1.0.0.tar.gz",
+1695580142278:repos = NULL, type = "source")
+1695580142280:}
+1695580142428:library(bonemarrowref.SeuratData)
+1695580148946:DimPlot(setty_seurat, group.by = "predicted.celltype.l1",
+1695580148949:reduction = "tsne", label = TRUE)
+1695580265176:library(org.Hs.eg.db)
+1695581566055:knitr::opts_chunk$set(echo = TRUE)
+1695581566071:# Parent directories
+1695581566072:inPath = "HandsOn5_A_Monocle3_Trajectory_Analysis/input_data/"
+1695581566274:outPath = "HandsOn5_A_Monocle3_Trajectory_Analysis/output_data/"
+1695581982729:# We will also make a few other empty directoires in the outpout folder
+1695581982734:imgPath = paste(inPath, "images", sep = "/")
+1695581987717:imgPath
+1695581992576:# Parent directories
+1695581992582:inPath = "HandsOn5_A_Monocle3_Trajectory_Analysis/input_data"
+1695581992859:outPath = "HandsOn5_A_Monocle3_Trajectory_Analysis/output_data"
+1695581996855:# We will also make a few other empty directoires in the outpout folder
+1695581996861:imgPath = paste(inPath, "images", sep = "/")
+1695581997925:imgPath
+1695582050937:# Load seurat H5 using seurat function
+1695582050943:sob = LoadH5Seurat(file = paste(inPath, "rep2_Processed_sob.h5seurat", sep = "/"),
+1695582050946:verbose = F) # this will suppress all the verbose
+1695582056533:inPath
+1695582067900:"HandsOn5_A_Monocle3_Trajectory_Analysis/input_data/rep2_Processed_sob.h5seurat"
+1695582094660:# Load seurat H5 using seurat function
+1695582094666:sob = LoadH5Seurat(file = paste(inPath, "rep2_Processed_sob", sep = "/"),
+1695582094669:verbose = F) # this will suppress all the verbose
+1695582113369:# Load seurat H5 using seurat function
+1695582113374:sob = LoadH5Seurat("input_data/rep2_Processed_sob.h5seurat"
+1695582113377:#file = paste(inPath, "rep2_Processed_sob", sep = "/"),
+1695582113380:verbose = F) # this will suppress all the verbose
+1695582116844:# Load seurat H5 using seurat function
+1695582116849:sob = LoadH5Seurat("input_data/rep2_Processed_sob.h5seurat",
+1695582116851:#file = paste(inPath, "rep2_Processed_sob", sep = "/"),
+1695582116852:verbose = F) # this will suppress all the verbose
+1695582301910:getwd()
+1695582449430:sob
+1695582455616:# Checcking Data
+1695582455622:DimPlot(sob)
+1695582481286:# Load seurat H5 using seurat function
+1695582481289:sob = LoadH5Seurat(file = paste(inPath, "setty_seurat_azimuth-classif.h5seurat", sep = "/"),
+1695582481292:verbose = F) # this will suppress all the verbose
+1695582486168:# Parent directories
+1695582486174:inPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/input_data"
+1695582486179:outPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/output_data"
+1695582486186:# We will also make a few other empty directoires in the outpout folder
+1695582486189:imgPath = paste(inPath, "images", sep = "/")
+1695582486192:tabPath = paste(inPath, "tables", sep = "/")
+1695582486194:rdsPath = paste(inPath, "rObjects", sep = "/")
+1695582488851:# Load seurat H5 using seurat function
+1695582488857:sob = LoadH5Seurat(file = paste(inPath, "setty_seurat_azimuth-classif.h5seurat", sep = "/"),
+1695582488859:verbose = F) # this will suppress all the verbose
+1695582514766:# Checcking Data
+1695582514767:DimPlot(sob, )
+1695582527527:sob
+1695582564403:# Checcking Data
+1695582564408:DimPlot(sob, group.by = "predicted.celltype.l2")
+1695582577771:# Checcking Data
+1695582577776:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "umap")
+1695582583639:# Checcking Data
+1695582583645:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne")
+1695582771037:# Checcking Data
+1695582771043:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695582771046:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695582771048:labs(xlab = "tSNE 1", ylab = "tSNE 2")
+1695582796298:# Checcking Data
+1695582796302:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695582796303:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695582796304:xlabs("tSNE 1") + ylab("tSNE 2")
+1695582801180:# Checcking Data
+1695582801182:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695582801183:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695582801183:xlab("tSNE 1") + ylab("tSNE 2")
+1695582854058:# Checcking Data
+1695582854064:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695582854067:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695582854069:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_manual("Dark2")
+1695582862411:# Checcking Data
+1695582862417:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695582862420:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695582862423:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer("Dark2")
+1695582868386:# Checcking Data
+1695582868391:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695582868394:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695582868396:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer("Set1")
+1695582875520:?scale_color_brewer
+1695582951337:# Checcking Data
+1695582951340:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695582951343:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695582951345:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_viridis(discrete = TRUE, option = "D")
+1695582977001:# Checcking Data
+1695582977006:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695582977009:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695582977011:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_viridis_d(discrete = TRUE, option = "D")
+1695582981793:# Checcking Data
+1695582981799:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695582981803:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695582981805:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_viridis_d()
+1695583049464:library(wesanderson)
+1695583059613:install.packages("wesanderson")
+1695583167689:wes_palette(name, n, type = c("discrete", "continuous"))
+1695583171726:suppressPackageStartupMessages(library(wesanderson)) # For Coloring
+1695583172868:wes_palette(name, n, type = c("discrete", "continuous"))
+1695583194683:wes_palette("BottleRocket1", 12, type = c("discrete", "continuous"))
+1695583207672:wes_palette("GrandBudapest2", 12, type = c("discrete", "continuous"))
+1695583230310:# Checcking Data
+1695583230316:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695583230317:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583230319:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer()
+1695583237693:# Checcking Data
+1695583237698:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695583237701:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583237702:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+1695583244672:# Checcking Data
+1695583244676:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695583244678:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583244679:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set11")
+1695583248771:# Checcking Data
+1695583248776:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695583248778:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583248779:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set3")
+1695583259515:# Checcking Data
+1695583259522:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695583259524:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583259526:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set4")
+1695583266623:# Checcking Data
+1695583266625:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695583266626:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583266627:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set5")
+1695583271842:# Checcking Data
+1695583271848:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695583271850:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583271851:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set2")
+1695583299432:# Checcking Data
+1695583299438:DimPlot(sob, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695583299441:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583299444:xlab("tSNE 1") + ylab("tSNE 2")
+1695583357578:# Checcking Data
+1695583357579:DimPlot(sob, group.by = "predicted.celltype.l1",reduction = "tsne", ) +
+1695583357580:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583357581:xlab("tSNE 1") + ylab("tSNE 2")
+1695583375513:# Checcking Data
+1695583375519:DimPlot(sob, group.by = "predicted.celltype.l1",reduction = "tsne", ) +
+1695583375522:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583375525:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer("Dark2")
+1695583382598:# Checcking Data
+1695583382604:DimPlot(sob, group.by = "predicted.celltype.l1",reduction = "tsne", ) +
+1695583382608:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583382612:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer("set3")
+1695583385942:# Checcking Data
+1695583385948:DimPlot(sob, group.by = "predicted.celltype.l1",reduction = "tsne", ) +
+1695583385949:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583385951:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer("Set3")
+1695583395014:# Checcking Data
+1695583395019:DimPlot(sob, group.by = "predicted.celltype.l1",reduction = "tsne", ) +
+1695583395022:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583395026:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set3")
+1695583403879:# Checcking Data
+1695583403884:DimPlot(sob, group.by = "predicted.celltype.l1",reduction = "tsne", ) +
+1695583403885:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695583403887:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+1695583781027:# Subset the dataset
+1695583781030:sob.sub = subset(sob, subset = predicted.celltype.l1 == "HSPC")
+1695583782378:# Print consoel
+1695583782379:sob.sub
+1695583787310:sib
+1695583788848:sob
+1695584589746:sob.sub@assays$prediction.score.celltype.l2
+1695584609776:sob.sub@assays$RNA@data
+1695584622689:sob.sub@assays$RNA@counts
+1695584669267:rawCounts <- sob.sub@assays$RNA@counts
+1695584686273:DT::datatable(rawCounts)
+1695584707690:DT::datatable(as.data.frame(rawCounts[c(1:20),c(1:20)]))
+1695584762607:# View a few line of data
+1695584762613:datatable(as.data.frame(rawCounts[c(1:20),c(1:20)]))
+1695584767002:suppressPackageStartupMessages(library(DT)) # Dynamic tables
+1695584769205:# View a few line of data
+1695584769211:datatable(as.data.frame(rawCounts[c(1:20),c(1:20)]))
+1695584876304:dim(rawCounts)
+1695584899151:# Extract the Raw counts
+1695584899158:cellMetaData <- sob.sub@meta.data
+1695584907579:# View a few line of data
+1695584907585:datatable(cellMetaData)
+1695585010133:# Plot  of cell types
+1695585010134:ggplot(cellMetaData, aes(x = "predicted.celltype.l2")) + geom_bar()
+1695585020587:# Plot  of cell types
+1695585020593:ggplot(cellMetaData, aes(y = "predicted.celltype.l2")) + geom_bar()
+1695585031877:cellMetaData$predicted.celltype.l2
+1695585121474:# Plot  of cell types
+1695585121478:cellMetaData %>%
+1695585121481:group_by(predicted.celltype.l1) %>%
+1695585121485:summarise(count = n()) %>%
+1695585121488:ggplot(aes(x=predicted.celltype.l1, y=count)) +
+1695585121491:geom_bar(stat="identity", fill="blue") +
+1695585121493:labs(x="Strings", y="Count", title="Counts of Strings in Dataframe") +
+1695585121495:theme_minimal()
+1695585141453:suppressPackageStartupMessages(library(tidyverse))
+1695585144753:# Plot  of cell types
+1695585144755:cellMetaData %>%
+1695585144757:group_by(predicted.celltype.l1) %>%
+1695585144759:summarise(count = n()) %>%
+1695585144760:ggplot(aes(x=predicted.celltype.l1, y=count)) +
+1695585144762:geom_bar(stat="identity", fill="blue") +
+1695585144763:labs(x="Strings", y="Count", title="Counts of Strings in Dataframe") +
+1695585144764:theme_minimal()
+1695585154564:# Plot  of cell types
+1695585154571:cellMetaData %>%
+1695585154575:group_by(predicted.celltype.l2) %>%
+1695585154579:summarise(count = n()) %>%
+1695585154580:ggplot(aes(x=predicted.celltype.l2, y=count)) +
+1695585154582:geom_bar(stat="identity", fill="blue") +
+1695585154584:labs(x="Strings", y="Count", title="Counts of Strings in Dataframe") +
+1695585154585:theme_minimal()
+1695585205632:# Plot  of cell types
+1695585205638:cellMetaData %>%
+1695585205641:group_by(predicted.celltype.l2) %>%
+1695585205644:summarise(count = n()) %>%
+1695585205648:ggplot(aes(x=predicted.celltype.l2, y=count)) +
+1695585205651:geom_bar(stat="identity") +
+1695585205654:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585205656:theme_minimal()
+1695585221742:# Plot  of cell types
+1695585221748:cellMetaData %>%
+1695585221751:group_by(predicted.celltype.l2) %>%
+1695585221754:summarise(count = n()) %>%
+1695585221756:ggplot(aes(x=predicted.celltype.l2, y=count)) +
+1695585221757:geom_bar(stat="identity") + scale_color_brewer(palette = "set1")+
+1695585221758:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585221759:theme_minimal()
+1695585225620:# Plot  of cell types
+1695585225626:cellMetaData %>%
+1695585225628:group_by(predicted.celltype.l2) %>%
+1695585225629:summarise(count = n()) %>%
+1695585225630:ggplot(aes(x=predicted.celltype.l2, y=count)) +
+1695585225632:geom_bar(stat="identity") + scale_color_brewer(palette = "Set1")+
+1695585225633:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585225634:theme_minimal()
+1695585271966:# Plot  of cell types
+1695585271971:cellMetaData %>%
+1695585271973:group_by(predicted.celltype.l2) %>%
+1695585271974:summarise(count = n()) %>%
+1695585271975:ggplot(aes(x=predicted.celltype.l2, y=count)) +
+1695585271977:geom_bar(stat="identity") + scale_fill_brewer(palette = "Set1")+
+1695585271978:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585271979:theme_minimal()
+1695585283367:# Plot  of cell types
+1695585283373:cellMetaData %>%
+1695585283375:group_by(predicted.celltype.l2) %>%
+1695585283377:summarise(count = n()) %>%
+1695585283379:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585283380:geom_bar(stat="identity") + scale_fill_brewer(palette = "Set1")+
+1695585283381:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585283383:theme_minimal()
+1695585289922:# Plot  of cell types
+1695585289928:cellMetaData %>%
+1695585289931:group_by(predicted.celltype.l2) %>%
+1695585289934:summarise(count = n()) %>%
+1695585289937:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585289939:geom_bar(stat="identity") + scale_fill_brewer(palette = "Set3")+
+1695585289941:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585289942:theme_minimal()
+1695585299030:# Plot  of cell types
+1695585299036:cellMetaData %>%
+1695585299039:group_by(predicted.celltype.l2) %>%
+1695585299040:summarise(count = n()) %>%
+1695585299042:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585299043:geom_bar(stat="identity") + #scale_fill_brewer(palette = "Set3")+
+1695585299044:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585299045:theme_minimal()
+1695585334798:# Plot  of cell types
+1695585334804:cellMetaData %>%
+1695585334807:group_by(predicted.celltype.l2) %>%
+1695585334810:summarise(count = n()) %>%
+1695585334814:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585334817:geom_bar(stat="identity") + #scale_fill_brewer(palette = "Set3")+
+1695585334820:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585334823:theme_minimal() + theme(axis.title.x = element_text(angle = 45, hjust = -1, vjust = 1))
+1695585342030:# Plot  of cell types
+1695585342034:cellMetaData %>%
+1695585342036:group_by(predicted.celltype.l2) %>%
+1695585342037:summarise(count = n()) %>%
+1695585342038:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585342040:geom_bar(stat="identity") + #scale_fill_brewer(palette = "Set3")+
+1695585342041:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585342042:theme_minimal() + theme(axis.title.x = element_text(angle = 45, hjust = -1, vjust = 1))
+1695585361783:# Plot  of cell types
+1695585361790:cellMetaData %>%
+1695585361793:group_by(predicted.celltype.l2) %>%
+1695585361796:summarise(count = n()) %>%
+1695585361798:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585361800:geom_bar(stat="identity") + #scale_fill_brewer(palette = "Set3")+
+1695585361801:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585361802:theme(axis.title.x = element_text(angle = 45, hjust = -1, vjust = 1))+ theme_minimal()
+1695585367580:# Plot  of cell types
+1695585367587:cellMetaData %>%
+1695585367590:group_by(predicted.celltype.l2) %>%
+1695585367592:summarise(count = n()) %>%
+1695585367593:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585367594:geom_bar(stat="identity") + #scale_fill_brewer(palette = "Set3")+
+1695585367595:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585367597:theme(axis.title.x = element_text(angle = 45, hjust = 1, vjust = 1))+ theme_minimal()
+1695585395268:# Plot  of cell types
+1695585395269:cellMetaData %>%
+1695585395271:group_by(predicted.celltype.l2) %>%
+1695585395272:summarise(count = n()) %>%
+1695585395273:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585395275:geom_bar(stat="identity") + #scale_fill_brewer(palette = "Set3")+
+1695585395276:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585395278:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))+ theme_minimal()
+1695585435921:# Plot  of cell types
+1695585435927:cellMetaData %>%
+1695585435930:group_by(predicted.celltype.l2) %>%
+1695585435934:summarise(count = n()) %>%
+1695585435935:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585435938:geom_bar(stat="identity") + #scale_fill_brewer(palette = "Set3")+
+1695585435940:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585435941:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))+ theme_minimal()
+1695585446895:cellMetaData %>%
+1695585446899:group_by(predicted.celltype.l2) %>%
+1695585446899:summarise(count = n()) %>%
+1695585446899:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585446900:geom_bar(stat="identity") + #scale_fill_brewer(palette = "Set3")+
+1695585446900:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585446900:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))+ theme_minimal()
+1695585482109:# Plot  of cell types
+1695585482110:cellMetaData %>%
+1695585482112:group_by(predicted.celltype.l2) %>%
+1695585482114:summarise(count = n()) %>%
+1695585482115:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585482117:geom_bar(stat="identity") + #scale_fill_brewer(palette = "Set3")+
+1695585482119:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585482120:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 0.5)) +
+1695585482121:theme_minimal()
+1695585488555:# Plot  of cell types
+1695585488559:cellMetaData %>%
+1695585488561:group_by(predicted.celltype.l2) %>%
+1695585488562:summarise(count = n()) %>%
+1695585488563:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585488565:geom_bar(stat="identity") + #scale_fill_brewer(palette = "Set3")+
+1695585488566:labs(x="Cell Types", y="Number of Cells", title="Counts of annoated Cell types") +
+1695585488567:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 0.5)) +
+1695585488569:theme_minimal()
+1695585796386:# View a few line of data
+1695585796392:datatable(cellMetaData, options = list(scrollX = TRUE,
+1695585796396:scroller = TRUE))
+1695585841134:# Plot  of cell types
+1695585841141:cellMetaData %>%
+1695585841145:group_by(predicted.celltype.l2) %>%
+1695585841149:summarise(count = n()) %>%
+1695585841153:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585841156:geom_bar(stat="identity") +
+1695585841159:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 0.5))
+1695585848532:# Plot  of cell types
+1695585848537:cellMetaData %>%
+1695585848539:group_by(predicted.celltype.l2) %>%
+1695585848540:summarise(count = n()) %>%
+1695585848541:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585848543:geom_bar(stat="identity") +
+1695585848544:theme(axis.text.x = element_text(angle = 45, hjust = -1, vjust = 0.5))
+1695585853857:# Plot  of cell types
+1695585853863:cellMetaData %>%
+1695585853866:group_by(predicted.celltype.l2) %>%
+1695585853868:summarise(count = n()) %>%
+1695585853869:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585853871:geom_bar(stat="identity") +
+1695585853872:theme(axis.text.x = element_text(angle = 45, hjust = -0.5, vjust = 0.5))
+1695585860447:# Plot  of cell types
+1695585860450:cellMetaData %>%
+1695585860454:group_by(predicted.celltype.l2) %>%
+1695585860457:summarise(count = n()) %>%
+1695585860459:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585860461:geom_bar(stat="identity") +
+1695585860462:theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust = 0.5))
+1695585865232:# Plot  of cell types
+1695585865237:cellMetaData %>%
+1695585865239:group_by(predicted.celltype.l2) %>%
+1695585865240:summarise(count = n()) %>%
+1695585865241:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585865242:geom_bar(stat="identity") +
+1695585865243:theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust = 0))
+1695585871327:# Plot  of cell types
+1695585871334:cellMetaData %>%
+1695585871336:group_by(predicted.celltype.l2) %>%
+1695585871337:summarise(count = n()) %>%
+1695585871339:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585871340:geom_bar(stat="identity") +
+1695585871341:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 0))
+1695585875496:# Plot  of cell types
+1695585875502:cellMetaData %>%
+1695585875506:group_by(predicted.celltype.l2) %>%
+1695585875509:summarise(count = n()) %>%
+1695585875511:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585875512:geom_bar(stat="identity") +
+1695585875513:theme(axis.text.x = element_text(angle = 45, hjust = -1, vjust = 0))
+1695585896115:# Plot  of cell types
+1695585896118:cellMetaData %>%
+1695585896121:group_by(predicted.celltype.l2) %>%
+1695585896124:summarise(count = n()) %>%
+1695585896127:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585896131:geom_bar(stat="identity") + theme_minimal()+
+1695585896135:theme(axis.text.x = element_text(angle = 45, hjust = -1, vjust = 0))
+1695585936263:# Plot  of cell types
+1695585936267:cellMetaData %>%
+1695585936269:group_by(predicted.celltype.l2) %>%
+1695585936270:summarise(count = n()) %>%
+1695585936271:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585936273:geom_bar(stat="identity") + theme_minimal()+
+1695585936274:theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust = 1))
+1695585940576:# Plot  of cell types
+1695585940583:cellMetaData %>%
+1695585940585:group_by(predicted.celltype.l2) %>%
+1695585940586:summarise(count = n()) %>%
+1695585940587:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585940589:geom_bar(stat="identity") + theme_minimal()+
+1695585940590:theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust = -1))
+1695585945665:# Plot  of cell types
+1695585945669:cellMetaData %>%
+1695585945671:group_by(predicted.celltype.l2) %>%
+1695585945673:summarise(count = n()) %>%
+1695585945674:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585945675:geom_bar(stat="identity") + theme_minimal()+
+1695585945676:theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust = -0.5))
+1695585950609:# Plot  of cell types
+1695585950611:cellMetaData %>%
+1695585950612:group_by(predicted.celltype.l2) %>%
+1695585950613:summarise(count = n()) %>%
+1695585950614:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585950615:geom_bar(stat="identity") + theme_minimal()+
+1695585950616:theme(axis.text.x = element_text(angle = 45, hjust = 0, vjust = -0))
+1695585994848:# Plot  of cell types
+1695585994853:cellMetaData %>%
+1695585994856:group_by(predicted.celltype.l2) %>%
+1695585994857:summarise(count = n()) %>%
+1695585994858:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695585994860:geom_bar(stat="identity") + theme_minimal()+
+1695585994863:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = -0))
+1695586001609:# Plot  of cell types
+1695586001610:cellMetaData %>%
+1695586001611:group_by(predicted.celltype.l2) %>%
+1695586001613:summarise(count = n()) %>%
+1695586001616:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586001617:geom_bar(stat="identity") + theme_minimal()+
+1695586001618:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 0.7))
+1695586008676:# Plot  of cell types
+1695586008682:cellMetaData %>%
+1695586008685:group_by(predicted.celltype.l2) %>%
+1695586008686:summarise(count = n()) %>%
+1695586008687:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586008689:geom_bar(stat="identity") + theme_minimal()+
+1695586008690:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+1695586103520:# Plot  of cell types
+1695586103524:cellMetaData %>%
+1695586103526:group_by(predicted.celltype.l2) %>%
+1695586103527:summarise(count = n()) %>%
+1695586103529:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586103530:geom_bar(stat="identity") + theme_minimal()+
+1695586103531:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695586103533:geom_hline(yintercept = 50, linetype = "dashed", color = "blue")
+1695586117813:# Plot  of cell types
+1695586117816:cellMetaData %>%
+1695586117818:group_by(predicted.celltype.l2) %>%
+1695586117820:summarise(count = n()) %>%
+1695586117821:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586117822:geom_bar(stat="identity") + theme_minimal()+
+1695586117823:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695586117824:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695586366498:# Plot  of cell types
+1695586366504:sob.sub@meta.data %>%
+1695586366508:group_by(predicted.celltype.l2) %>%
+1695586366511:summarise(count = n()) %>%
+1695586366514:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586366516:geom_bar(stat="identity") + theme_minimal()+
+1695586366518:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695586366519:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695586571234:# Subset the dataset
+1695586571238:sob.sub.1 = subset(sob.sub, subset = predicted.celltype.l2 %in% c("CLP", " Early Eryth", "EMP",
+1695586571241:"GMP", "HSC", "LMPP", "preB"))
+1695586594132:# Plot  of cell types
+1695586594134:sob.sub.1@meta.data %>%
+1695586594135:group_by(predicted.celltype.l2) %>%
+1695586594137:summarise(count = n()) %>%
+1695586594138:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586594139:geom_bar(stat="identity") + theme_minimal()+
+1695586594140:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695586594142:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695586642559:sob.sub@meta.data$predicted.celltype.l2
+1695586650247:unique(sob.sub@meta.data$predicted.celltype.l2)
+1695586666924:# Subset the dataset
+1695586666930:sob.sub.1 = subset(sob.sub, subset = predicted.celltype.l2 %in% c("CLP", " Early Eryth", "EMP",
+1695586666932:"GMP", "HSC", "LMPP", "pre B"))
+1695586668235:# Plot  of cell types
+1695586668237:sob.sub.1@meta.data %>%
+1695586668238:group_by(predicted.celltype.l2) %>%
+1695586668239:summarise(count = n()) %>%
+1695586668241:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586668242:geom_bar(stat="identity") + theme_minimal()+
+1695586668243:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695586668245:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695586684085:unique(sob.sub@meta.data$predicted.celltype.l2)
+1695586713914:# Subset the dataset
+1695586713919:sob.sub.1 = subset(sob.sub, subset = predicted.celltype.l2 %in% c("CLP", " Early Eryth", "EMP",
+1695586713921:"GMP", "HSC", "LMPP", "pre B"))
+1695586715127:# Subset the dataset
+1695586715129:sob.sub.1 = subset(sob.sub, subset = predicted.celltype.l2 %in% c("CLP", " Early Eryth", "EMP",
+1695586715130:"GMP", "HSC", "LMPP", "pre B"))
+1695586717566:# Plot  of cell types
+1695586717568:sob.sub.1@meta.data %>%
+1695586717569:group_by(predicted.celltype.l2) %>%
+1695586717570:summarise(count = n()) %>%
+1695586717571:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586717573:geom_bar(stat="identity") + theme_minimal()+
+1695586717574:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695586717575:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695586726972:# Subset the dataset
+1695586726979:sob.sub.1 = subset(sob.sub, subset = predicted.celltype.l2 %in% c("CLP", "Early Eryth", "EMP",
+1695586726981:"GMP", "HSC", "LMPP", "pre B"))
+1695586728985:# Plot  of cell types
+1695586728989:sob.sub.1@meta.data %>%
+1695586728990:group_by(predicted.celltype.l2) %>%
+1695586728991:summarise(count = n()) %>%
+1695586728992:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586728993:geom_bar(stat="identity") + theme_minimal()+
+1695586728995:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695586728996:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695586775191:# Tsne
+1695586775197:tsne_sub <- DimPlot(sob.sub.1, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695586775201:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695586775204:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+1695586779991:tsne_sub
+1695586794528:# Plot  of cell types
+1695586794532:bar_p <- sob.sub.1@meta.data %>%
+1695586794536:group_by(predicted.celltype.l2) %>%
+1695586794539:summarise(count = n()) %>%
+1695586794542:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586794544:geom_bar(stat="identity") + theme_minimal()+scale_fill_brewer(palette = "Set1")
+1695586799694:# Plot  of cell types
+1695586799698:bar_p <- sob.sub.1@meta.data %>%
+1695586799700:group_by(predicted.celltype.l2) %>%
+1695586799702:summarise(count = n()) %>%
+1695586799703:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695586799705:geom_bar(stat="identity") + theme_minimal()+scale_fill_brewer(palette = "Set1")+
+1695586799706:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695586799708:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695586802522:bar_p
+1695586815859:suppressPackageStartupMessages(library(ggpubr)) # Dynamic tables
+1695586834243:# Let's view
+1695586834256:ggarrange(tsne_sub, bar_p)
+1695586864150:# Extract the Raw counts
+1695586864163:rawCounts <- sob.sub@assays$RNA@counts
+1695586864176:# View a few line of data
+1695586864187:datatable(as.data.frame(rawCounts[c(1:20),c(1:20)]),
+1695586864197:options = list(scrollX = TRUE,
+1695586864209:scroller = TRUE))
+1695586868037:# Extract the Raw counts
+1695586868050:cellMetaData <- sob.sub@meta.data
+1695586868068:# View a few line of data
+1695586868084:datatable(cellMetaData, options = list(scrollX = TRUE,
+1695586868096:scroller = TRUE))
+1695586874598:dim(rawCounts)
+1695586881405:# Extract the Raw counts
+1695586881418:rawCounts <- sob.sub.1@assays$RNA@counts
+1695586882581:# View a few line of data
+1695586882593:datatable(as.data.frame(rawCounts[c(1:20),c(1:20)]),
+1695586882605:options = list(scrollX = TRUE,
+1695586882617:scroller = TRUE))
+1695586886730:dim(rawCounts)
+1695586894790:# Extract the Raw counts
+1695586894804:cellMetaData <- sob.sub.1@meta.data
+1695586895800:# View a few line of data
+1695586895812:datatable(cellMetaData, options = list(scrollX = TRUE,
+1695586895824:scroller = TRUE))
+1695587240278:# Extract the Raw counts
+1695587240290:cellMetaData <- sob.sub.1@meta.data
+1695587240847:# Also adding complete names for the cell types
+1695587240859:cellMetaData[cellMetaData$predicted.celltype.l2 == "HSC", "Cell.type"] = "Hematopoietic Stem Cells (HSCs)"
+1695587241254:cellMetaData[cellMetaData$predicted.celltype.l2 == "CLP", "Cell.type"] = "Common Lymphoid Progenitor (CLPs)"
+1695587241517:cellMetaData[cellMetaData$predicted.celltype.l2 == "Early Eryth", "Cell.type"] = "Primitive Erythrocytes (PEs)"
+1695587241705:cellMetaData[cellMetaData$predicted.celltype.l2 == "EMP", "Cell.type"] = "Erythro-Myeloid Progenitors (EMPs)"
+1695587241893:cellMetaData[cellMetaData$predicted.celltype.l2 == "Early Eryth", "Cell.type"] = "Primitive Erythrocytes (PEs)"
+1695587242068:cellMetaData[cellMetaData$predicted.celltype.l2 == "GMP", "Cell.type"] = "Granulocyte-Monocyte Progenitor (GMPs)"
+1695587242252:cellMetaData[cellMetaData$predicted.celltype.l2 == "LMPP", "Cell.type"] = "Lympho-Myeloid Primed Progenitor Cell (LMPPs)"
+1695587242480:cellMetaData[cellMetaData$predicted.celltype.l2 == "pre B", "Cell.type"] = "Pre B Lymphocyte (Pre-B)"
+1695587247110:# View a few line of data
+1695587247121:datatable(cellMetaData, options = list(scrollX = TRUE,
+1695587247133:scroller = TRUE))
+1695587287196:cellMetaData %>%
+1695587287209:group_by(Cell.type) %>%
+1695587287221:summarise(count = n()) %>%
+1695587287233:ggplot(aes(x=Cell.type, y=count, fill=Cell.type)) +
+1695587287245:geom_bar(stat="identity") + theme_minimal()+scale_fill_brewer(palette = "Set1")+
+1695587287257:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695587287269:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695587374581:sob.sub.1@assays$RNA@meta.features
+1695587378481:View(sob.sub.1@assays$RNA@meta.features)
+1695587403766:# The Gene level metadata is stored here
+1695587403778:geneMetaData <- sob.sub.1@assays$RNA@meta.features
+1695587592262:suppressPackageStartupMessages(library(org.Hs.eg.db)) # For annotations
+1695587612521:geneMetaData
+1695587615277:View(geneMetaData)
+1695587621098:# map gene IDs to database
+1695587621110:entrez_ids_ens <- mapIds(org.Hs.eg.db,
+1695587621122:keys = rownames(geneMetaData),
+1695587621133:column = "ENTREZID", keytype = "ENSEMBL")
+1695587625044:entrez_ids_ens
+1695587633740:entrez_ids_symb <- mapIds(org.Hs.eg.db,
+1695587633756:keys = rownames(geneMetaData),
+1695587633769:column = "ENTREZID", keytype = "SYMBOL")
+1695587638096:# merge
+1695587638111:entrez_ids_symb[is.na(entrez_ids_symb)] <- entrez_ids_ens[is.na(entrez_ids_symb)]
+1695587641623:entrez_ids_symb
+1695587645285:View(entrez_ids_symb)
+1695587754458:# Create a function to map both ENSEMBL and SYMBOL
+1695587754475:convert_to_ids_symbols <- function(gene) {
+1695587754488:# Try converting assuming it's an ENSEMBL ID
+1695587754500:symbol <- mapIds(org.Hs.eg.db, keys = gene, column = "SYMBOL", keytype = "ENSEMBL", multiVals = "first")
+1695587754511:ensembl <- mapIds(org.Hs.eg.db, keys = gene, column = "ENSEMBL", keytype = "SYMBOL", multiVals = "first")
+1695587754534:# Determine the type based on the result
+1695587754545:if (!is.na(symbol)) {
+1695587754555:return(c(ENSEMBL = gene, SYMBOL = symbol))
+1695587754567:} else if (!is.na(ensembl)) {
+1695587754578:return(c(ENSEMBL = ensembl, SYMBOL = gene))
+1695587754589:} else {
+1695587754599:return(c(ENSEMBL = NA, SYMBOL = NA))
+1695587754610:}
+1695587754621:}
+1695587765880:# Apply the function to the row names of the Seurat object
+1695587765892:gene_mapping <- t(sapply(rownames(geneMetaData), convert_to_ids_symbols))
+1695587777153:rownames(geneMetaData)
+1695587846583:# View the gene metadata
+1695587846604:datatable(geneMetaData, options = list(scrollX = TRUE,
+1695587846616:scroller = TRUE))
+1695587863170:# Extract row names
+1695587863189:genes <- rownames(geneMetaData)
+1695587866152:# Split genes into potential ENSEMBL IDs and SYMBOLs based on pattern
+1695587866164:ensembl_ids <- grep("^ENSG", genes, value = TRUE)
+1695587866918:symbols <- setdiff(genes, ensembl_ids)
+1695587868969:# Map ENSEMBL to SYMBOL
+1695587868981:ensembl_to_symbol <- select(org.Hs.eg.db, keys = ensembl_ids, columns = "SYMBOL", keytype = "ENSEMBL")
+1695587900614:# Map ENSEMBL to SYMBOL
+1695587900627:ensembl_to_symbol <- AnnotationDbi::select(org.Hs.eg.db, keys = ensembl_ids, columns = "SYMBOL", keytype = "ENSEMBL")
+1695587901675:colnames(ensembl_to_symbol) <- c("ENSEMBL", "SYMBOL")
+1695587903933:# Map SYMBOL to ENSEMBL
+1695587903944:symbol_to_ensembl <- select(org.Hs.eg.db, keys = symbols, columns = "ENSEMBL", keytype = "SYMBOL")
+1695587907307:# Map SYMBOL to ENSEMBL
+1695587907320:symbol_to_ensembl <- AnnotationDbi::select(org.Hs.eg.db, keys = symbols, columns = "ENSEMBL", keytype = "SYMBOL")
+1695587908145:colnames(symbol_to_ensembl) <- c("SYMBOL", "ENSEMBL")
+1695587909736:# Combine results and clean up
+1695587909755:final_mapping <- bind_rows(
+1695587909770:ensembl_to_symbol %>% select(ENSEMBL, SYMBOL),
+1695587909783:symbol_to_ensembl %>% select(ENSEMBL, SYMBOL)
+1695587909795:)
+1695587911042:# View results
+1695587911055:head(final_mapping)
+1695587923859:View(final_mapping)
+1695587964744:# Extract row names
+1695587964758:geneMetaData$gene_short_name <- rownames(geneMetaData)
+1695587979453:# View the gene metadata
+1695587979466:datatable(geneMetaData, options = list(scrollX = TRUE,
+1695587979479:scroller = TRUE))
+1695588124411:# Using the Monocle3 native creation function
+1695588124425:cds <- new_cell_data_set(expression_data = rawCounts,
+1695588124436:cell_metadata = cellMetaData,
+1695588124448:gene_metadata = geneMetaData)
+1695588132890:suppressPackageStartupMessages(library(monocle3))
+1695588136695:# Using the Monocle3 native creation function
+1695588136708:cds <- new_cell_data_set(expression_data = rawCounts,
+1695588136721:cell_metadata = cellMetaData,
+1695588136733:gene_metadata = geneMetaData)
+1695588138774:cds
+1695588369719:?preprocess_cds()
+1695588730567:# Monocle 3 allows do this to do pre-processing in 1 go
+1695588730583:cds = preprocess_cds(cds = cds,
+1695588730596:method = "PCA",
+1695588730607:num_dim = 50,
+1695588730619:norm_method = "log",
+1695588730631:pseudo_count = 1,
+1695588730643:scaling = T,
+1695588730663:verbose = F)
+1695588941185:?reduce_dimension
+1695588995805:# Monocle 3 allows do this to do pre-processing in 1 go
+1695588995818:cds = reduce_dimension(cds = cds,
+1695588995830:max_components = 3,
+1695588995843:reduction_method = "UMAP",
+1695588995855:preprocess_method = "PCA",
+1695588995866:umap.metric = 0.1,
+1695588995877:umap.n_neighbors = 15L)
+1695589006361:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589006374:cds = reduce_dimension(cds = cds,
+1695589006386:max_components = 3,
+1695589006397:reduction_method = "UMAP",
+1695589006409:preprocess_method = "PCA",
+1695589006421:umap.metric = 0.1,
+1695589006432:umap.n_neighbors = 15)
+1695589025009:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589025022:cds = reduce_dimension(cds = cds,
+1695589025034:max_components = 3,
+1695589025046:reduction_method = "UMAP",
+1695589025057:umap.metric = 0.1,
+1695589025069:umap.n_neighbors = 15)
+1695589029626:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589029639:cds = reduce_dimension(cds = cds,
+1695589029650:max_components = 2,
+1695589029661:reduction_method = "UMAP",
+1695589029672:umap.metric = 0.1,
+1695589029683:umap.n_neighbors = 15)
+1695589051957:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589051971:cds = reduce_dimension(cds = cds,
+1695589051984:max_components = 3,
+1695589051995:reduction_method = "UMAP",
+1695589052007:preprocess_method = "PCA",
+1695589052019:umap.min_dist = 0.1,
+1695589052030:umap.n_neighbors = 15)
+1695589207217:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589207230:umap_2d = plot_cells(cds = cds,
+1695589207243:color_cells_by = "Cell.type",
+1695589207254:show_trajectory_graph = F, # We will explore this later
+1695589207265:label_cell_groups = F, # This is to hide labels on the map
+1695589207275:cell_size = 1.5) + theme(legend.position = "bottom")
+1695589210216:umap_2d
+1695589264682:# 3d Plot
+1695589264694:umap_2d = plot_cells_3d(cds = cds,
+1695589264706:color_cells_by = "Cell.type",
+1695589264717:show_trajectory_graph = F, # We will explore this later
+1695589264729:label_cell_groups = F, # This is to hide labels on the map
+1695589264740:cell_size = 1.5) + theme(legend.position = "bottom")
+1695589268174:# 3d Plot
+1695589268187:umap_3d = plot_cells_3d(cds = cds,
+1695589268199:color_cells_by = "Cell.type",
+1695589268211:show_trajectory_graph = F, # We will explore this later
+1695589268222:label_cell_groups = F, # This is to hide labels on the map
+1695589268233:cell_size = 1.5) + theme(legend.position = "bottom")
+1695589270757:umap_3d
+1695589281255:# 3d Plot
+1695589281268:umap_3d = plot_cells_3d(cds = cds,
+1695589281280:color_cells_by = "Cell.type",
+1695589281292:show_trajectory_graph = F, # We will explore this later
+1695589281303:cell_size = 1.5) + theme(legend.position = "bottom")
+1695589283938:umap_3d
+1695589290055:# 3d Plot
+1695589290066:umap_3d = plot_cells_3d(cds = cds,
+1695589290080:color_cells_by = "Cell.type",
+1695589290092:show_trajectory_graph = F, # We will explore this later
+1695589290103:cell_size = 1.5) + theme(legend.position = "bottom")
+1695589296392:plot_cells_3d(cds = cds,
+1695589296396:color_cells_by = "Cell.type",
+1695589296397:show_trajectory_graph = F, # We will explore this later
+1695589296397:cell_size = 1.5) + theme(legend.position = "bottom")
+1695589303493:# 3d Plot
+1695589303506:umap_3d = plot_cells_3d(cds = cds,
+1695589303517:color_cells_by = "Cell.type",
+1695589303530:show_trajectory_graph = F, # We will explore this later
+1695589303542:cell_size = 1.5) + theme(legend.position = "bottom")
+1695589308439:# 3d Plot
+1695589308451:umap_3d <- plot_cells_3d(cds = cds,
+1695589308463:color_cells_by = "Cell.type",
+1695589308474:show_trajectory_graph = F, # We will explore this later
+1695589308486:cell_size = 1.5) + theme(legend.position = "bottom")
+1695589312371:umap_3d
+1695589317016:# 3d Plot
+1695589317030:umap_3d <- plot_cells_3d(cds = cds,
+1695589317041:color_cells_by = "Cell.type",
+1695589317053:show_trajectory_graph = F, # We will explore this later
+1695589317064:cell_size = 1.5)
+1695589321623:umap_3d
+1695589328337:# 2D plot
+1695589328351:umap_2d = plot_cells(cds = cds,
+1695589328416:color_cells_by = "Cell.type",
+1695589328428:show_trajectory_graph = F, # We will explore this later
+1695589328440:label_cell_groups = F, # This is to hide labels on the map
+1695589328452:cell_size = 1.5) + theme(legend.position = "bottom")
+1695589329187:# 3d Plot
+1695589329201:umap_3d <- plot_cells_3d(cds = cds,
+1695589329219:color_cells_by = "Cell.type",
+1695589329232:show_trajectory_graph = F, # We will explore this later
+1695589329245:cell_size = 1.5)
+1695589341166:ggarrange(umap_2d, umap_3d)
+1695589375231:# 2D plot
+1695589375243:plot_cells(cds = cds,
+1695589375255:color_cells_by = "Cell.type",
+1695589375267:show_trajectory_graph = F, # We will explore this later
+1695589375279:label_cell_groups = F, # This is to hide labels on the map
+1695589375290:cell_size = 1.5) + theme(legend.position = "bottom") +
+1695589375301:scale_color_brewer(palette = "Set1")
+1695589381537:plot_cells(cds = cds,
+1695589381541:color_cells_by = "Cell.type",
+1695589381543:show_trajectory_graph = F, # We will explore this later
+1695589381543:label_cell_groups = F, # This is to hide labels on the map
+1695589381544:cell_size = 1.5) + theme(legend.position = "bottom") +
+1695589381545:scale_color_brewer(palette = "Set1")
+1695589399421:# 2D plot
+1695589399434:plot_cells(cds = cds,
+1695589399447:color_cells_by = "Cell.type",alpha = 0.7,
+1695589399459:show_trajectory_graph = F, # We will explore this later
+1695589399470:label_cell_groups = F, # This is to hide labels on the map
+1695589399483:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589399494:scale_color_brewer(palette = "Set1")
+1695589402985:plot_cells(cds = cds,
+1695589402989:color_cells_by = "Cell.type",alpha = 0.7,
+1695589402989:show_trajectory_graph = F, # We will explore this later
+1695589402989:label_cell_groups = F, # This is to hide labels on the map
+1695589402990:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589402990:scale_color_brewer(palette = "Set1")
+1695589419835:# 3d Plot
+1695589419850:umap_3d <- plot_cells_3d(cds = cds,
+1695589419862:color_cells_by = "Cell.type",
+1695589419875:show_trajectory_graph = F, # We will explore this later
+1695589419886:cell_size = 1.5)
+1695589425385:# 3d Plot
+1695589425398:umap_3d <- plot_cells_3d(cds = cds,
+1695589425410:color_cells_by = "Cell.type",
+1695589425422:show_trajectory_graph = F, # We will explore this later
+1695589425434:cell_size = 3)
+1695589431130:# 3d Plot
+1695589431143:plot_cells_3d(cds = cds,
+1695589431156:color_cells_by = "Cell.type",
+1695589431168:show_trajectory_graph = F, # We will explore this later
+1695589431180:cell_size = 3)
+1695589536039:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589536053:cds = reduce_dimension(cds = cds,
+1695589536066:max_components = 2,
+1695589536077:reduction_method = "UMAP",
+1695589536089:preprocess_method = "PCA",
+1695589536101:umap.min_dist = 0.1,
+1695589536112:umap.n_neighbors = 15)
+1695589546405:# 2D plot
+1695589546418:plot_cells(cds = cds,
+1695589546430:color_cells_by = "Cell.type",alpha = 0.7,
+1695589546442:show_trajectory_graph = F, # We will explore this later
+1695589546453:label_cell_groups = F, # This is to hide labels on the map
+1695589546464:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589546475:scale_color_brewer(palette = "Set1")
+1695589561024:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589561038:cds = reduce_dimension(cds = cds,
+1695589561051:max_components = 2,
+1695589561063:reduction_method = "UMAP",
+1695589561074:preprocess_method = "PCA",
+1695589561086:umap.min_dist = 0.1,
+1695589561098:umap.n_neighbors = 25)
+1695589570571:# 2D plot
+1695589570584:plot_cells(cds = cds,
+1695589570595:color_cells_by = "Cell.type",alpha = 0.7,
+1695589570605:show_trajectory_graph = F, # We will explore this later
+1695589570616:label_cell_groups = F, # This is to hide labels on the map
+1695589570628:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589570640:scale_color_brewer(palette = "Set1")
+1695589582475:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589582509:cds = reduce_dimension(cds = cds,
+1695589582530:max_components = 2,
+1695589582541:reduction_method = "UMAP",
+1695589582554:preprocess_method = "PCA",
+1695589582566:umap.min_dist = 0.1,
+1695589582579:umap.n_neighbors = 20)
+1695589597796:# 2D plot
+1695589597808:plot_cells(cds = cds,
+1695589597821:color_cells_by = "Cell.type",alpha = 0.7,
+1695589597833:show_trajectory_graph = F, # We will explore this later
+1695589597844:label_cell_groups = F, # This is to hide labels on the map
+1695589597857:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589597868:scale_color_brewer(palette = "Set1")
+1695589722378:knitr::opts_chunk$set(echo = TRUE)
+1695589722399:suppressPackageStartupMessages(library(SeuratDisk))
+1695589722413:suppressPackageStartupMessages(library(Seurat))
+1695589722425:suppressPackageStartupMessages(library(monocle3))
+1695589722438:suppressPackageStartupMessages(library(tidyverse))
+1695589722451:suppressPackageStartupMessages(library(ggplot2)) # For Plotting
+1695589722472:suppressPackageStartupMessages(library(wesanderson)) # For Coloring
+1695589722495:suppressPackageStartupMessages(library(DT)) # Dynamic tables
+1695589722508:suppressPackageStartupMessages(library(ggpubr)) # Dynamic tables
+1695589722535:suppressPackageStartupMessages(library(org.Hs.eg.db)) # For annotations
+1695589722553:# Parent directories
+1695589722567:inPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/input_data"
+1695589722581:outPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/output_data"
+1695589722597:# We will also make a few other empty directoires in the outpout folder
+1695589722610:imgPath = paste(inPath, "images", sep = "/")
+1695589722625:tabPath = paste(inPath, "tables", sep = "/")
+1695589722688:rdsPath = paste(inPath, "rObjects", sep = "/")
+1695589722709:# Load seurat H5 using seurat function
+1695589722722:sob = LoadH5Seurat(file = paste(inPath, "setty_seurat_azimuth-classif.h5seurat", sep = "/"),
+1695589722735:verbose = F) # this will suppress all the verbose
+1695589748961:# Checcking Data
+1695589748975:DimPlot(sob, group.by = "predicted.celltype.l1",reduction = "tsne", ) +
+1695589748987:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695589748999:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+1695589749354:# Subset the dataset
+1695589749368:sob.sub = subset(sob, subset = predicted.celltype.l1 == "HSPC")
+1695589750538:# Print consoel
+1695589750553:sob.sub
+1695589750634:# Plot  of cell types
+1695589750647:sob.sub@meta.data %>%
+1695589750660:group_by(predicted.celltype.l2) %>%
+1695589750673:summarise(count = n()) %>%
+1695589750757:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695589750770:geom_bar(stat="identity") + theme_minimal()+
+1695589750783:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695589750795:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695589751324:# Subset the dataset
+1695589751339:sob.sub.1 = subset(sob.sub, subset = predicted.celltype.l2 %in% c("CLP", "Early Eryth", "EMP",
+1695589751352:"GMP", "HSC", "LMPP"))
+1695589752460:# Plot  of cell types
+1695589752475:bar_p = sob.sub.1@meta.data %>%
+1695589752487:group_by(predicted.celltype.l2) %>%
+1695589752499:summarise(count = n()) %>%
+1695589752510:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695589752521:geom_bar(stat="identity") + theme_minimal()+scale_fill_brewer(palette = "Set1")+
+1695589752533:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695589752546:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695589752856:# Tsne
+1695589752860:tsne_sub = DimPlot(sob.sub.1, group.by = "predicted.celltype.l2",reduction = "tsne", ) +
+1695589752862:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695589752865:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+1695589752976:# Let's view
+1695589752979:ggarrange(tsne_sub, bar_p)
+1695589753792:# Extract the Raw counts
+1695589753809:rawCounts = sob.sub.1@assays$RNA@counts
+1695589753832:# View a few line of data
+1695589753850:datatable(as.data.frame(rawCounts[c(1:20),c(1:20)]),
+1695589753867:options = list(scrollX = TRUE,
+1695589753885:scroller = TRUE))
+1695589754017:# Extract the Raw counts
+1695589754031:cellMetaData = sob.sub.1@meta.data
+1695589754055:# Also adding complete names for the cell types
+1695589754069:cellMetaData[cellMetaData$predicted.celltype.l2 == "HSC", "Cell.type"] = "Hematopoietic Stem Cells (HSCs)"
+1695589754093:cellMetaData[cellMetaData$predicted.celltype.l2 == "CLP", "Cell.type"] = "Common Lymphoid Progenitor (CLPs)"
+1695589754132:cellMetaData[cellMetaData$predicted.celltype.l2 == "Early Eryth", "Cell.type"] = "Primitive Erythrocytes (PEs)"
+1695589754163:cellMetaData[cellMetaData$predicted.celltype.l2 == "EMP", "Cell.type"] = "Erythro-Myeloid Progenitors (EMPs)"
+1695589754194:cellMetaData[cellMetaData$predicted.celltype.l2 == "Early Eryth", "Cell.type"] = "Primitive Erythrocytes (PEs)"
+1695589754226:cellMetaData[cellMetaData$predicted.celltype.l2 == "GMP", "Cell.type"] = "Granulocyte-Monocyte Progenitor (GMPs)"
+1695589754257:cellMetaData[cellMetaData$predicted.celltype.l2 == "LMPP", "Cell.type"] = "Lympho-Myeloid Primed Progenitor Cell (LMPPs)"
+1695589754299:# View a few line of data
+1695589754318:datatable(cellMetaData, options = list(scrollX = TRUE,
+1695589754336:scroller = TRUE))
+1695589754498:# The Gene level metadata is stored here
+1695589754511:geneMetaData = sob.sub.1@assays$RNA@meta.features
+1695589754527:# View the gene metadata
+1695589754540:datatable(geneMetaData, options = list(scrollX = TRUE,
+1695589754553:scroller = TRUE))
+1695589756863:# Extract row names
+1695589756895:geneMetaData$gene_short_name = rownames(geneMetaData)
+1695589756912:# View the gene metadata
+1695589756926:datatable(geneMetaData, options = list(scrollX = TRUE,
+1695589756943:scroller = TRUE))
+1695589757650:# Using the Monocle3 native creation function
+1695589757677:cds = new_cell_data_set(expression_data = rawCounts,
+1695589757706:cell_metadata = cellMetaData,
+1695589757723:gene_metadata = geneMetaData)
+1695589758210:cds
+1695589758343:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589758357:cds = preprocess_cds(cds = cds,
+1695589758371:method = "PCA",
+1695589758385:num_dim = 50,
+1695589758398:norm_method = "log",
+1695589758412:pseudo_count = 1,
+1695589758425:scaling = T,
+1695589758439:verbose = F)
+1695589781142:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589781162:cds = reduce_dimension(cds = cds,
+1695589781178:max_components = 3,
+1695589781193:reduction_method = "UMAP",
+1695589781210:preprocess_method = "PCA",
+1695589781226:umap.min_dist = 0.1,
+1695589781241:umap.n_neighbors = 15)
+1695589789714:# 2D plot
+1695589789728:plot_cells(cds = cds,
+1695589789741:color_cells_by = "Cell.type",alpha = 0.7,
+1695589789753:show_trajectory_graph = F, # We will explore this later
+1695589789766:label_cell_groups = F, # This is to hide labels on the map
+1695589789779:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589789792:scale_color_brewer(palette = "Set1")
+1695589790290:# 3d Plot
+1695589790305:plot_cells_3d(cds = cds,
+1695589790317:color_cells_by = "Cell.type",
+1695589790328:show_trajectory_graph = F, # We will explore this later
+1695589790340:cell_size = 3)
+1695589819964:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589819977:cds = reduce_dimension(cds = cds,
+1695589819990:max_components = 2,
+1695589820002:reduction_method = "UMAP",
+1695589820014:preprocess_method = "PCA",
+1695589820025:umap.min_dist = 0.2,
+1695589820038:umap.n_neighbors = 20)
+1695589828442:# 2D plot
+1695589828454:plot_cells(cds = cds,
+1695589828466:color_cells_by = "Cell.type",alpha = 0.7,
+1695589828477:show_trajectory_graph = F, # We will explore this later
+1695589828489:label_cell_groups = F, # This is to hide labels on the map
+1695589828501:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589828512:scale_color_brewer(palette = "Set1")
+1695589843074:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589843087:cds = reduce_dimension(cds = cds,
+1695589843100:max_components = 2,
+1695589843113:reduction_method = "UMAP",
+1695589843125:preprocess_method = "PCA",
+1695589843136:umap.min_dist = 0.1,
+1695589843148:umap.n_neighbors = 20)
+1695589851786:# 2D plot
+1695589851797:plot_cells(cds = cds,
+1695589851808:color_cells_by = "Cell.type",alpha = 0.7,
+1695589851819:show_trajectory_graph = F, # We will explore this later
+1695589851832:label_cell_groups = F, # This is to hide labels on the map
+1695589851843:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589851855:scale_color_brewer(palette = "Set1")
+1695589865080:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589865093:cds = reduce_dimension(cds = cds,
+1695589865105:max_components = 2,
+1695589865118:reduction_method = "UMAP",
+1695589865130:preprocess_method = "PCA",
+1695589865141:umap.min_dist = 0.2,
+1695589865151:umap.n_neighbors = 15)
+1695589876356:# 2D plot
+1695589876369:plot_cells(cds = cds,
+1695589876382:color_cells_by = "Cell.type",alpha = 0.7,
+1695589876394:show_trajectory_graph = F, # We will explore this later
+1695589876405:label_cell_groups = F, # This is to hide labels on the map
+1695589876416:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589876427:scale_color_brewer(palette = "Set1")
+1695589907637:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589907652:cds = reduce_dimension(cds = cds,
+1695589907665:max_components = 3,
+1695589907677:reduction_method = "UMAP",
+1695589907688:preprocess_method = "PCA",
+1695589907701:umap.min_dist = 0.2,
+1695589907721:umap.n_neighbors = 15)
+1695589919781:# 2D plot
+1695589919796:plot_cells(cds = cds,
+1695589919809:color_cells_by = "Cell.type",alpha = 0.7,
+1695589919821:show_trajectory_graph = F, # We will explore this later
+1695589919833:label_cell_groups = F, # This is to hide labels on the map
+1695589919845:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589919865:scale_color_brewer(palette = "Set1")
+1695589920452:# 3d Plot
+1695589920467:plot_cells_3d(cds = cds,
+1695589920479:color_cells_by = "Cell.type",
+1695589920490:show_trajectory_graph = F, # We will explore this later
+1695589920503:cell_size = 3)
+1695589949431:# 3d Plot
+1695589949446:plot_cells_3d(cds = cds,
+1695589949459:color_cells_by = "Cell.type",
+1695589949469:show_trajectory_graph = F, # We will explore this later
+1695589949480:cell_size = 5)
+1695589960654:# 3d Plot
+1695589960668:plot_cells_3d(cds = cds,
+1695589960680:color_cells_by = "Cell.type",
+1695589960691:show_trajectory_graph = F, # We will explore this later
+1695589960702:cell_size = 10)
+1695589979243:# Monocle 3 allows do this to do pre-processing in 1 go
+1695589979256:cds = reduce_dimension(cds = cds,
+1695589979269:max_components = 2,
+1695589979280:reduction_method = "UMAP",
+1695589979292:preprocess_method = "PCA",
+1695589979303:umap.min_dist = 0.2,
+1695589979316:umap.n_neighbors = 15)
+1695589987532:# 2D plot
+1695589987545:plot_cells(cds = cds,
+1695589987557:color_cells_by = "Cell.type",alpha = 0.7,
+1695589987571:show_trajectory_graph = F, # We will explore this later
+1695589987584:label_cell_groups = F, # This is to hide labels on the map
+1695589987597:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695589987609:scale_color_brewer(palette = "Set1")

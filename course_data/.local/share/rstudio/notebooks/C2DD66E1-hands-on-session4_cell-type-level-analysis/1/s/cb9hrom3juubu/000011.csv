@@ -1,0 +1,42 @@
+"0","setty_seurat <- LoadH5Seurat(paste0(""../HandsOn3_SingleCell_Data_QC/"", "
+"0","                                    ""processed_data/setty_seurat_clustered.h5seurat""))"
+"2","Validating h5Seurat file
+"
+"2","Initializing RNA with data
+"
+"2","Adding counts for RNA
+"
+"2","Adding scale.data for RNA
+"
+"2","Adding feature-level metadata for RNA
+"
+"2","Adding variable feature information for RNA
+"
+"2","Adding miscellaneous information for RNA
+"
+"2","Adding reduction pca
+"
+"2","Adding cell embeddings for pca
+"
+"2","Adding feature loadings for pca
+"
+"2","Adding miscellaneous information for pca
+"
+"2","Adding reduction tsne
+"
+"2","Adding cell embeddings for tsne
+"
+"2","Adding miscellaneous information for tsne
+"
+"2","Adding graph RNA_nn
+"
+"2","Adding graph RNA_snn
+"
+"2","Adding command information
+"
+"2","Adding cell-level metadata
+"
+"2","Adding miscellaneous information
+"
+"2","Adding tool-specific results
+"

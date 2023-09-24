@@ -80,6 +80,11 @@ RUN Rscript -e 'install.packages("bonemarrowref.SeuratData_1.0.0.tar.gz", repos 
 # Copy the R library directory from the builder to the final image
 #COPY --from=builder /usr/local/lib/R/site-library /usr/local/lib/R/site-library
 
+RUN Rscript -e 'install.packages(c("wesanderson"), repos = "https://cloud.r-project.org/", dependencies = TRUE, Ncpus = 24, quiet = TRUE)'
+
+# Create ESR data
+RUN mkdir /home/esr
+
 # Expose port 8787 (RStudio runs on this port)
 EXPOSE 8787
 

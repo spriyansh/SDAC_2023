@@ -1,0 +1,2 @@
+"0","available_data <- AvailableData()"
+"0","available_data[grep(""Azimuth"", available_data[, 3]), 1:3]"

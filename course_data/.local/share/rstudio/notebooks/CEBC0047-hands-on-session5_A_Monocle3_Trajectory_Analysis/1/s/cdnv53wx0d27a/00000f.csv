@@ -1,0 +1,7 @@
+"0","# Monocle 3 allows do this to do pre-processing in 1 go"
+"0","cds = reduce_dimension(cds = cds,"
+"0","                      max_components = 3,"
+"0","                      reduction_method = ""UMAP"","
+"0","                      preprocess_method = ""PCA"","
+"0","                      umap.min_dist = 0.2,"
+"0","                      umap.n_neighbors = 15)"

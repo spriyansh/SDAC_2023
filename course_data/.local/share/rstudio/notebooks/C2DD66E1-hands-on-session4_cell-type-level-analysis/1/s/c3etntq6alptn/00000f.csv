@@ -1,0 +1,4 @@
+"0","DimPlot(setty_seurat, group.by = ""predicted.celltype.l1"","
+"0","        reduction = ""tsne"", label = TRUE)"
+"2","Error: Cannot find 'predicted.celltype.l1' in this Seurat object
+"

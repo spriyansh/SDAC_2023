@@ -1,0 +1,6 @@
+"0","if(!""bonemarrowref.SeuratData"" %in% installed.packages()[,""Package""]){"
+"0","  install.packages(""bonemarrowref.SeuratData_1.0.0.tar.gz"","
+"0","                 repos = NULL, type = ""source"")"
+"0","}"
+"0",""
+"0","library(bonemarrowref.SeuratData)"

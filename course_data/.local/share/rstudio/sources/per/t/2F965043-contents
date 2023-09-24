@@ -1,0 +1,281 @@
+---
+title: "Hands-on session 5: Trajectory Analysis with Monocle3"
+subtitle: "Basic Implementation of Monocle3 pipeline"
+author: "Priyansh Srivastava"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+Monocle introduced the strategy of using RNA-Seq for single-cell trajectory analysis. Rather than purifying cells into discrete states experimentally, Monocle uses an algorithm to learn the sequence of gene expression changes each cell must go through as part of a dynamic biological process. Once it has learned the overall "trajectory" of gene expression changes, Monocle can place each cell at its proper position in the trajectory.
+
+If there are multiple outcomes for the process, Monocle will reconstruct a "branched" trajectory. These branches correspond to cellular "decisions", and Monocle provides powerful tools for identifying the genes affected by them and involved in making them.
+
+In this tutorial, which is based on the official vignette of Monocle3 available at [Trapnell lab](https://cole-trapnell-lab.github.io/monocle3/docs/trajectories/), we will use the dataset.
+
+---
+
+## Pre-requistes
+
+### About the dataset
+
+We will utilize the same data from the Seurat object from the previous session.
+
+### Flow of the analysis
+
+### Required Libraries and Path set ups
+
+To suppress verbose messages from various libraries, we will use the suppressPackageStartupMessages(), which suppresses all the package startup calls.
+
+```{r, "Calling the Required Libraies", echo=T, eval=T}
+suppressPackageStartupMessages(library(SeuratDisk))
+suppressPackageStartupMessages(library(Seurat))
+suppressPackageStartupMessages(library(monocle3))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(ggplot2)) # For plotting
+suppressPackageStartupMessages(library(wesanderson)) # For coloring
+suppressPackageStartupMessages(library(DT)) # For dynamic tables
+suppressPackageStartupMessages(library(ggpubr)) # For additional plotting tools
+```
+
+We will also set paths for input and output data for easier I/O operations. We are using absolute paths to avoid any conflicts. Throughout the analysis, we will save all the data in the native .RDS format, which is a native format for R.
+
+```{r, "Setting IO paths", echo=T, eval=T}
+# Parent directories
+inPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/input_data"
+outPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/output_data"
+
+# We will also create a few other empty directories in the output folder
+imgPath = paste(outPath, "images", sep = "/")
+tabPath = paste(outPath, "tables", sep = "/")
+rdsPath = paste(outPath, "rObjects", sep = "/")
+```
+
+### Loading the dataset
+We will load the Seurat dataset from the previous hands-on session (*Hands-4: Cell-Type Analysis*). We are using this dataset as the cell types are already identified, making it easier for us to infer and validate the trajectory of the dataset.
+
+```{r, "Loading the Seurat Object", echo=T, eval=T, message=F, warnings=F}
+# Load the Seurat H5 using the Seurat function
+sob = LoadH5Seurat(file = paste(inPath, "setty_seurat_azimuth-classif.h5seurat", sep = "/"),
+             verbose = F) # This suppresses all verbose messages
+
+# Checking Data
+DimPlot(sob, group.by = "predicted.celltype.l1", reduction = "tsne") +
+  ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+  xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+```
+
+---
+
+## Analysis
+
+### Subsetting the Seurat object by cell types
+
+From the plot above, it's evident that we have numerous cells, especially when we color the tSNE using higher-level labels. Some of these cells aren't even present in bone marrow. For instance, it would be more logical to run trajectory inference on HSPCs. However, if we include the $CD4^{+}T$ cells, it could skew the analysis. We'll explore later how this might impact our findings. Now, let's subset the data.
+
+```{r, "Subsetting the seurat object for HSPCs", echo=T, eval=T, message=F, warnings=F}
+# Subset the dataset for HSPCs
+sob.sub = subset(sob, subset = predicted.celltype.l1 == "HSPC")
+
+# Print to console
+print(sob.sub)
+```
+
+We will generate plots using the more detailed hierarchy of cell types.
+
+### Subsetting the Seurat object based on the number of cells per cell type
+```{r, "Plotting the seurat object by cell numer counts", echo=T, eval=T, message=F, warnings=F}
+# Plotting the number of each cell type
+sob.sub@meta.data %>%
+  group_by(predicted.celltype.l2) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+  geom_bar(stat="identity") + theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + 
+  geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+```
+
+We also subset the cells based on their counts. As previously discussed, there should be a sufficient number of cell states to confidently predict the trajectory. If not, it becomes challenging for Monocle3 to confidently position the cells along the trajectory. Even though the "Pre B" cells have a relatively high population, we'll exclude them for now. We'll explore the effects of this exclusion later in the analysis.
+
+```{r, "Subsetting the seurat object by cell numer counts", echo=T, eval=T, message=F, warnings=F}
+# Subset the dataset based on specific cell types
+sob.sub.1 = subset(sob.sub, subset = predicted.celltype.l2 %in% c("CLP", "Early Eryth", "EMP",
+                                                                  "GMP", "HSC", "LMPP"))
+
+# Generate a bar plot of the selected cell types
+bar_p = sob.sub.1@meta.data %>%
+  group_by(predicted.celltype.l2) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+  geom_bar(stat="identity") + theme_minimal() + scale_fill_brewer(palette = "Set1") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + 
+  geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+
+# tSNE plot of the subsetted cells
+tsne_sub = DimPlot(sob.sub.1, group.by = "predicted.celltype.l2", reduction = "tsne") +
+  ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+  xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+
+# Combine and display the tSNE and bar plots
+ggarrange(tsne_sub, bar_p)
+```
+
+
+### Creation of the `cell_data_set` Object for Monocle3
+
+- The cell_data_set (abbreviated as CDS) is an S4 object used by Monocle3. It inherits all the slots of the SingleCellExperiment class and additionally stores information about the principal graph, trajectory, and more.
+
+- Similar to the SingleCellExperiment, the cell_data_set requires:
+  1. **Count Table**: This can be extracted from the Seurat object. It should ideally be provided in the dgCMatrix class format.
+  
+  2. **Cell Metadata**: This is an R dataframe where the row names correspond to the columns of the count data. The columns contain information about the cells, such as experimental capture time or cell type annotation labels, as in our scenario.
+  
+  3. **Gene Metadata**: This too is an R dataframe where the row names match the rows of the count data. The columns provide details about the genes, including functionalities, symbols, ontologies, and so on. Crucially, this dataframe must contain a column named <span style="color:blue">"gene_short_name"</span>, which is subsequently utilized by the plotting functions in Monocle3.
+
+We'll address each requirement sequentially and examine the data. Initially, we'll work with the *rawCounts*, but we'll also demonstrate how to proceed with normalized data later on.
+
+```{r, "Extract the counts", echo=T, eval=T, message=F, warnings=F}
+# Extracting the Raw counts
+rawCounts = sob.sub.1@assays$RNA@counts
+
+# Displaying a subset of the data for inspection
+datatable(as.data.frame(rawCounts[c(1:20),c(1:20)]),
+          options = list(scrollX = TRUE, 
+                         scroller = TRUE))
+```
+
+Next, we'll retrieve the cell-level metadata:
+
+```{r, "Extract the cell level metadata", echo=T, eval=T, message=F, warnings=F}
+# Extracting the cell metadata
+cellMetaData = sob.sub.1@meta.data
+
+# Appending descriptive names for the cell types
+cellMetaData[cellMetaData$predicted.celltype.l2 == "HSC", "Cell.type"] = "Hematopoietic Stem Cells (HSCs)"
+cellMetaData[cellMetaData$predicted.celltype.l2 == "CLP", "Cell.type"] = "Common Lymphoid Progenitor (CLPs)"
+cellMetaData[cellMetaData$predicted.celltype.l2 == "Early Eryth", "Cell.type"] = "Primitive Erythrocytes (PEs)"
+cellMetaData[cellMetaData$predicted.celltype.l2 == "EMP", "Cell.type"] = "Erythro-Myeloid Progenitors (EMPs)"
+cellMetaData[cellMetaData$predicted.celltype.l2 == "GMP", "Cell.type"] = "Granulocyte-Monocyte Progenitor (GMPs)"
+cellMetaData[cellMetaData$predicted.celltype.l2 == "LMPP", "Cell.type"] = "Lympho-Myeloid Primed Progenitor Cell (LMPPs)"
+
+# Displaying a subset of the metadata for inspection
+datatable(cellMetaData, options = list(scrollX = TRUE, 
+                         scroller = TRUE))
+```
+
+```{r, "Extract Gene Level Metadata", echo=T, eval=T, message=F, warnings=F}
+# Extracting the gene-level metadata
+geneMetaData = sob.sub.1@assays$RNA@meta.features
+
+# Displaying a subset of the gene metadata for inspection
+datatable(geneMetaData, options = list(scrollX = TRUE, 
+                         scroller = TRUE))
+```
+
+Next, we append the **gene_short_name** column:
+
+```{r, "Adding gene_short_name", echo=T, eval=T, message=F, warnings=F}
+# Assigning row names to the gene_short_name column
+geneMetaData$gene_short_name = rownames(geneMetaData)
+
+# Displaying the updated gene metadata for verification
+datatable(geneMetaData, options = list(scrollX = TRUE, 
+                         scroller = TRUE))
+```
+
+### Creating the Object
+
+```{r, "Creating CDS", echo=T, eval=T, message=F, warnings=F}
+# Generating the CDS using Monocle3's built-in function
+cds = new_cell_data_set(expression_data = rawCounts,
+      cell_metadata = cellMetaData,
+      gene_metadata = geneMetaData)
+
+# Displaying the newly created CDS
+cds
+```
+
+*Check the class in the console print*
+
+---
+
+## Pre-Prcoessing Data with Monocle3
+
+### Normalization of the raw counts
+
+Before any downstream analyses, it's necessary to normalize the data to account for various technical or biological differences among samples. You've opted for log normalization, which is a common choice in single-cell data analysis. Monocle3 offers this and other normalization methods.
+
+### Feature Selection
+
+Instead of using all genes, you have wisely chosen to select latent features using Principal Component Analysis (PCA). This reduces dimensionality and retains the most important variances in the data. You also introduced the concept of a pseudo-count, which prevents taking the logarithm of zero during normalization.
+
+```{r, "Pre-Process CDS", echo=T, eval=T, message=F, warnings=F}
+# Monocle 3 allows do this pre-processing in 1 go
+cds = preprocess_cds(cds = cds,
+                      method = "PCA",
+                     num_dim = 50,
+                     norm_method = "log",
+                     pseudo_count = 1,
+                     scaling = T,
+                     verbose = F)
+```
+
+## Dimension reduction with Monocle 3
+
+Visualizing high-dimensional data in two or three dimensions is crucial for understanding cell trajectories and cluster distributions. Monocle3 provides this functionality with UMAP (and other methods), which you've opted to use. You've set parameters like umap.min_dist and umap.n_neighbors to tweak the appearance and structure of your UMAP plots.
+
+```{r, "Dimesnion Reduction", echo=T, eval=T, message=F, warnings=F}
+# Monocle 3 allows do this to do pre-processing in 1 go
+cds = reduce_dimension(cds = cds,
+                      max_components = 3,
+                      reduction_method = "UMAP",
+                      preprocess_method = "PCA",
+                      umap.min_dist = 0.2,
+                      umap.n_neighbors = 15)
+```
+
+Let's view
+
+```{r, "Plotting Reduced Dimensions", echo=T, eval=T, message=F, warnings=F}
+# 2D plot
+plot_cells(cds = cds,
+                      color_cells_by = "Cell.type",alpha = 0.7,
+                     show_trajectory_graph = F, # We will explore this later
+                     label_cell_groups = F, # This is to hide labels on the map
+                     cell_size = 1.4) + theme(legend.position = "bottom") +
+  scale_color_brewer(palette = "Set1")
+
+# 3d Plot
+plot_cells_3d(cds = cds,
+                      color_cells_by = "Cell.type",
+                     show_trajectory_graph = F, # We will explore this later
+                     cell_size = 10)
+```
+
+
+For Simplicity we will only work with the 2 dimensions so we will recalculate the dimensions
+```{r, "Dimesnion Reduction-2", echo=T, eval=T, message=F, warnings=F}
+# Monocle 3 allows do this to do pre-processing in 1 go
+cds = reduce_dimension(cds = cds,
+                      max_components = 2,
+                      reduction_method = "UMAP",
+                      preprocess_method = "PCA",
+                      umap.min_dist = 0.2,
+                      umap.n_neighbors = 15)
+# 2D plot
+plot_cells(cds = cds,
+                      color_cells_by = "Cell.type",alpha = 0.7,
+                     show_trajectory_graph = F, # We will explore this later
+                     label_cell_groups = F, # This is to hide labels on the map
+                     cell_size = 1.4) + theme(legend.position = "bottom") +
+  scale_color_brewer(palette = "Set1")
+```

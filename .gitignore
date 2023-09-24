@@ -12,3 +12,7 @@ course_data/HandsOn3_SingleCell_Data_QC/data_preparation/*.h5seurat
 course_data/HandsOn4_CellType_Analysis/bonemarrowref.SeuratData_1.0.0.tar.gz
 course_data/HandsOn4_CellType_Analysis/processed_data/*
 course_data/HandsOn4_CellType_Analysis/data_preparation/*.h5seurat
+
+
+course_data/HandsOn5_A_Monocle3_Trajectory_Analysis/input_data
+course_data/HandsOn5_A_Monocle3_Trajectory_Analysis/output_data
