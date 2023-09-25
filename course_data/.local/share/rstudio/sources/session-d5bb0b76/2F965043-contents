@@ -1,0 +1,627 @@
+---
+title: "Hands-on session 5: Trajectory Analysis with Monocle3"
+subtitle: "Basic Implementation of Monocle3 pipeline"
+author: "Priyansh Srivastava"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE, eval=T}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+Monocle introduced the strategy of using RNA-Seq for single-cell trajectory analysis. Rather than purifying cells into discrete states experimentally, Monocle uses an algorithm to learn the sequence of gene expression changes each cell must go through as part of a dynamic biological process. Once it has learned the overall "trajectory" of gene expression changes, Monocle can place each cell at its proper position in the trajectory.
+
+If there are multiple outcomes for the process, Monocle will reconstruct a "branched" trajectory. These branches correspond to cellular "decisions", and Monocle provides powerful tools for identifying the genes affected by them and involved in making them.
+
+In this tutorial, which is based on the official vignette of Monocle3 available at [Trapnell lab](https://cole-trapnell-lab.github.io/monocle3/docs/trajectories/), we will use the dataset.
+
+---
+
+## Pre-requistes
+
+### About the dataset
+
+We will utilize the same data from the Seurat object from the previous session.
+
+### Flow of the analysis
+
+### Required Libraries and Path set ups
+
+To suppress verbose messages from various libraries, we will use the suppressPackageStartupMessages(), which suppresses all the package startup calls.
+
+```{r, "Calling the Required Libraies", echo=T, eval=T}
+suppressPackageStartupMessages(library(SeuratDisk))
+suppressPackageStartupMessages(library(Seurat))
+suppressPackageStartupMessages(library(monocle3))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(ggplot2)) # For plotting
+suppressPackageStartupMessages(library(DT)) # For dynamic tables
+suppressPackageStartupMessages(library(ggpubr)) # For additional plotting tools
+```
+
+We will also set paths for input and output data for easier I/O operations. We are using absolute paths to avoid any conflicts. Throughout the analysis, we will save all the data in the native .RDS format, which is a native format for R.
+
+```{r, "Setting IO paths", echo=T, eval=T}
+# Parent directories
+inPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/input_data"
+outPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/output_data"
+
+# We will also create a few other empty directories in the output folder
+imgPath = paste(outPath, "images", sep = "/")
+tabPath = paste(outPath, "tables", sep = "/")
+rdsPath = paste(outPath, "rObjects", sep = "/")
+```
+
+### Loading the dataset
+We will load the Seurat dataset from the previous hands-on session (*Hands-4: Cell-Type Analysis*). We are using this dataset as the cell types are already identified, making it easier for us to infer and validate the trajectory of the dataset.
+
+```{r, "Loading the Seurat Object", echo=T, eval=T, message=F, warnings=F}
+# Load the Seurat H5 using the Seurat function
+sob = LoadH5Seurat(file = paste(inPath, "setty_seurat_azimuth-classif.h5seurat", sep = "/"),
+             verbose = F) # This suppresses all verbose messages
+
+# Checking Data
+DimPlot(sob, group.by = "predicted.celltype.l1", reduction = "tsne") +
+  ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+  xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+```
+
+---
+
+## Analysis
+
+### Subsetting the Seurat object by cell types
+
+From the plot above, it's evident that we have numerous cells, especially when we color the tSNE using higher-level labels. Some of these cells aren't even present in bone marrow. For instance, it would be more logical to run trajectory inference on HSPCs. However, if we include the $CD4^{+}T$ cells, it could skew the analysis. We'll explore later how this might impact our findings. Now, let's subset the data.
+
+```{r, "Subsetting the seurat object for HSPCs", echo=T, eval=T, message=F, warnings=F}
+# Subset the dataset for HSPCs
+sob.sub = subset(sob, subset = predicted.celltype.l1 == "HSPC")
+
+# Print to console
+print(sob.sub)
+```
+
+We will generate plots using the more detailed hierarchy of cell types.
+
+### Subsetting the Seurat object based on the number of cells per cell type
+```{r, "Plotting the seurat object by cell numer counts", echo=T, eval=T, message=F, warnings=F}
+# Plotting the number of each cell type
+sob.sub@meta.data %>%
+  group_by(predicted.celltype.l2) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+  geom_bar(stat="identity") + theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + 
+  geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+```
+
+We also subset the cells based on their counts. As previously discussed, there should be a sufficient number of cell states to confidently predict the trajectory. If not, it becomes challenging for Monocle3 to confidently position the cells along the trajectory. Even though the "Pre B" cells have a relatively high population, we'll exclude them for now. We'll explore the effects of this exclusion later in the analysis.
+
+```{r, "Subsetting the seurat object by cell numer counts", echo=T, eval=T, message=F, warnings=F, fig.width=8, fig.height=6}
+# Subset the dataset based on specific cell types
+sob.sub.1 = subset(sob.sub, subset = predicted.celltype.l2 %in% c("CLP", "Early Eryth", "EMP",
+                                                                  "GMP", "HSC", "LMPP"))
+
+# Generate a bar plot of the selected cell types
+bar_p = sob.sub.1@meta.data %>%
+  group_by(predicted.celltype.l2) %>%
+  summarise(count = n()) %>%
+  ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+  geom_bar(stat="identity") + theme_minimal() + scale_fill_brewer(palette = "Set1") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) + 
+  geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+
+# tSNE plot of the subsetted cells
+tsne_sub = DimPlot(sob.sub.1, group.by = "predicted.celltype.l2", reduction = "tsne") +
+  ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+  xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+
+# Combine and display the tSNE and bar plots
+ggarrange(tsne_sub, bar_p)
+```
+
+
+### Creation of the `cell_data_set` Object for Monocle3
+
+- The cell_data_set (abbreviated as CDS) is an S4 object used by Monocle3. It inherits all the slots of the SingleCellExperiment class and additionally stores information about the principal graph, trajectory, and more.
+
+- Similar to the SingleCellExperiment, the cell_data_set requires:
+  1. **Count Table**: This can be extracted from the Seurat object. It should ideally be provided in the dgCMatrix class format.
+  
+  2. **Cell Metadata**: This is an R dataframe where the row names correspond to the columns of the count data. The columns contain information about the cells, such as experimental capture time or cell type annotation labels, as in our scenario.
+  
+  3. **Gene Metadata**: This too is an R dataframe where the row names match the rows of the count data. The columns provide details about the genes, including functionalities, symbols, ontologies, and so on. Crucially, this dataframe must contain a column named <span style="color:blue">"gene_short_name"</span>, which is subsequently utilized by the plotting functions in Monocle3.
+
+We'll address each requirement sequentially and examine the data. Initially, we'll work with the *rawCounts*, but we'll also demonstrate how to proceed with normalized data later on.
+
+```{r, "Extract the counts", echo=T, eval=T, message=F, warnings=F}
+# Extracting the Raw counts
+rawCounts = sob.sub.1@assays$RNA@counts
+
+# Displaying a subset of the data for inspection
+datatable(as.data.frame(rawCounts[c(1:20),c(1:20)]),
+          options = list(scrollX = TRUE, 
+                         scroller = TRUE))
+```
+
+Next, we'll retrieve the cell-level metadata:
+
+```{r, "Extract the cell level metadata", echo=T, eval=T, message=F, warnings=F}
+# Extracting the cell metadata
+cellMetaData = sob.sub.1@meta.data
+
+# Appending descriptive names for the cell types
+cellMetaData[cellMetaData$predicted.celltype.l2 == "HSC", "Cell.type"] = "Hematopoietic Stem Cells (HSCs)"
+cellMetaData[cellMetaData$predicted.celltype.l2 == "CLP", "Cell.type"] = "Common Lymphoid Progenitor (CLPs)"
+cellMetaData[cellMetaData$predicted.celltype.l2 == "Early Eryth", "Cell.type"] = "Primitive Erythrocytes (PEs)"
+cellMetaData[cellMetaData$predicted.celltype.l2 == "EMP", "Cell.type"] = "Erythro-Myeloid Progenitors (EMPs)"
+cellMetaData[cellMetaData$predicted.celltype.l2 == "GMP", "Cell.type"] = "Granulocyte-Monocyte Progenitor (GMPs)"
+cellMetaData[cellMetaData$predicted.celltype.l2 == "LMPP", "Cell.type"] = "Lympho-Myeloid Primed Progenitor Cell (LMPPs)"
+
+# Displaying a subset of the metadata for inspection
+datatable(head(cellMetaData, 10), options = list(scrollX = TRUE, 
+                         scroller = TRUE))
+```
+
+```{r, "Extract Gene Level Metadata", echo=T, eval=T, message=F, warnings=F}
+# Extracting the gene-level metadata
+geneMetaData = sob.sub.1@assays$RNA@meta.features
+
+# Displaying a subset of the gene metadata for inspection
+datatable(geneMetaData, options = list(scrollX = TRUE, 
+                         scroller = TRUE))
+```
+
+Next, we append the **gene_short_name** column:
+
+```{r, "Adding gene_short_name", echo=T, eval=T, message=F, warnings=F}
+# Assigning row names to the gene_short_name column
+geneMetaData$gene_short_name = rownames(geneMetaData)
+
+# Displaying the updated gene metadata for verification
+datatable(geneMetaData, options = list(scrollX = TRUE, 
+                         scroller = TRUE))
+```
+
+### Creating the Object
+
+```{r, "Creating CDS", echo=T, eval=T, message=F, warnings=F}
+# Generating the CDS using Monocle3's built-in function
+cds = new_cell_data_set(expression_data = rawCounts,
+      cell_metadata = cellMetaData,
+      gene_metadata = geneMetaData)
+
+# Displaying the newly created CDS
+cds
+```
+
+*Check the class in the console print*
+
+---
+
+## Pre-Prcoessing Data with Monocle3
+
+### Normalization of the raw counts
+
+Before any downstream analyses, it's necessary to normalize the data to account for various technical or biological differences among samples. You've opted for log normalization, which is a common choice in single-cell data analysis. Monocle3 offers this and other normalization methods.
+
+### Feature Selection
+
+Instead of using all genes, you have wisely chosen to select latent features using Principal Component Analysis (PCA). This reduces dimensionality and retains the most important variances in the data. You also introduced the concept of a pseudo-count, which prevents taking the logarithm of zero during normalization.
+
+```{r, "Pre-Process CDS", echo=T, eval=T, message=F, warnings=F}
+# Monocle 3 allows do this pre-processing in 1 go
+cds = preprocess_cds(cds = cds,
+                      method = "PCA",
+                     num_dim = 50,
+                     norm_method = "log",
+                     pseudo_count = 1,
+                     scaling = T,
+                     verbose = F)
+```
+
+## Dimension reduction with Monocle 3
+Visualizing high-dimensional data in two or three dimensions is crucial for understanding cell trajectories and cluster distributions. 
+
+
+### Different Options for dimension reduction
+
+Monocle3 provides this functionality with UMAP (and other methods), which you've opted to use. You can set parameters like `umap.min_dist` and `umap.n_neighbors` to tweak the appearance and structure of your UMAP plots.
+
+```{r, "Dimesnion Reduction", echo=T, eval=T, message=F, warnings=F}
+# Monocle 3 allows do this to do pre-processing in 1 go
+cds = reduce_dimension(cds = cds,
+                      max_components = 3,
+                      reduction_method = "UMAP",
+                      preprocess_method = "PCA",
+                      umap.min_dist = 0.2,
+                      umap.n_neighbors = 15)
+
+# We have other options as well
+cds_tsne = reduce_dimension(cds = cds,
+                      max_components = 3,
+                      reduction_method = "tSNE",
+                      preprocess_method = "PCA",
+                      umap.min_dist = 0.2,
+                      umap.n_neighbors = 15)
+# We have other options as well
+cds_PCA = reduce_dimension(cds = cds,
+                      max_components = 3,
+                      reduction_method = "PCA",
+                      preprocess_method = "PCA",
+                      umap.min_dist = 0.2,
+                      umap.n_neighbors = 15)
+```
+
+Let's view PCA and tSNE
+
+```{r, "PCA and tSNE", echo=T, eval=T, message=F, warnings=F, fig.width=12, fig.height=10}
+# 2D plot PCA
+cds_PCA_plot = plot_cells(cds = cds_PCA, reduction_method = "PCA",
+                      color_cells_by = "Cell.type",alpha = 0.7,
+                     show_trajectory_graph = F, # We will explore this later
+                     label_cell_groups = F, # This is to hide labels on the map
+                     cell_size = 1.4) + theme(legend.position = "bottom") +
+  scale_color_brewer(palette = "Set1")
+
+# 2D plot tSNE
+cds_tSNE_plot = plot_cells(cds = cds_tsne, reduction_method = "tSNE",
+                      color_cells_by = "Cell.type",alpha = 0.7,
+                     show_trajectory_graph = F, # We will explore this later
+                     label_cell_groups = F, # This is to hide labels on the map
+                     cell_size = 1.4) + theme(legend.position = "bottom") +
+  scale_color_brewer(palette = "Set1")
+
+# Plot
+ggarrange(cds_tSNE_plot, cds_PCA_plot)
+```
+
+### 2D and 3D plots with Monocle3
+```{r, "Plotting Reduced Dimensions", echo=T, eval=T, message=F, warnings=F,  fig.width=10, fig.height=10}
+# 2D plot
+plot_cells(cds = cds,
+                      color_cells_by = "Cell.type",alpha = 0.7,
+                     show_trajectory_graph = F, # We will explore this later
+                     label_cell_groups = F, # This is to hide labels on the map
+                     cell_size = 1.4) + theme(legend.position = "bottom") +
+  scale_color_brewer(palette = "Set1")
+
+# 3d Plot
+plot_cells_3d(cds = cds,
+                      color_cells_by = "Cell.type",
+                     show_trajectory_graph = F, # We will explore this later
+                     cell_size = 10)
+```
+
+For Simplicity we will only work with the 2 dimensions so we will recalculate the dimensions
+
+```{r, "Dimesnion Reduction-2", echo=T, eval=T, message=F, warnings=F,  fig.width=10, fig.height=10}
+# Monocle 3 allows do this to do pre-processing in 1 go
+cds = reduce_dimension(cds = cds,
+                      max_components = 2,
+                      reduction_method = "UMAP",
+                      preprocess_method = "PCA",
+                      umap.min_dist = 0.2,
+                      umap.n_neighbors = 15)
+# 2D plot
+plot_cells(cds = cds,
+                      color_cells_by = "Cell.type",alpha = 0.7,
+                     show_trajectory_graph = F, # We will explore this later
+                     label_cell_groups = F, # This is to hide labels on the map
+                     cell_size = 1.4) + theme(legend.position = "bottom") +
+  scale_color_brewer(palette = "Set1")
+```
+
+---
+
+## Clustering with Monocle3
+
+### `Louvain` and `Leiden` Clustering
+
+Monocel 3 offers `Leiden` clustering and `Louvain` clustering. The Leiden algorithm is an improvement upon the Louvain method for community detection in networks. The Louvain method works in two phases:
+1. First, it assigns nodes to its own community. Then, for each node, it evaluates the gain of modularity by removing it from its community and placing it in a neighboring community. This is done until no increase can be achieved.
+2. In the second phase, it builds a new network where nodes are the communities from the first phase. These two phases are repeated iteratively.
+
+Just like `Louvain`, `Leiden` operates in a hierarchical manner by optimizing modularity, but it includes a refinement phase to improve the quality of the detected communities.
+It is known to produce communities of higher modularity and can be more robust than Louvain.
+
+Both clustering methods are part of a family of algorithms that can detect communities in networks. When applied to scRNA-seq data, the "network" is typically a k-nearest neighbor (k-NN) graph of cells, where edges connect cells with similar gene expression profiles. The clustering algorithms then try to identify groups of cells (i.e., communities) that are more closely related to each other than to cells outside the group.
+
+We will see the results from from both the clustering and correlated the results with the annotated cell types.
+
+```{r, "Clustering", echo=T, eval=T, message=F, warnings=F}
+# Perform cell clustering using the Leiden algorithm
+cds <- cluster_cells(cds = cds,
+                      reduction_method = "UMAP",
+                      cluster_method = "leiden",
+                      resolution = 0.01,
+                      k = 25)
+
+# Perform cell clustering using the Louvain algorithm
+cds_louvain <- cluster_cells(cds = cds,
+                             k = 25,
+                             resolution = 0.01,
+                             reduction_method = "UMAP",
+                             cluster_method = "louvain")
+```
+
+Visualize the clustering results on the UMAP with annotated cell types.
+
+```{r, "Clustering with Cell Types", echo=T, eval=T, message=F, warnings=F, fig.width=14, fig.height=8}
+# Plot Leiden clusters
+leiden_Cluster <- plot_cells(cds = cds,
+                             color_cells_by = "cluster",
+                             alpha = 0.7,
+                             show_trajectory_graph = F,
+                             label_cell_groups = F,
+                             cell_size = 1.4) +
+  theme(legend.position = "bottom") +
+  scale_color_brewer(palette = "Set3")
+
+# Plot Louvain clusters
+louvain_Cluster <- plot_cells(cds = cds_louvain,
+                              color_cells_by = "cluster",
+                              alpha = 0.7,
+                              show_trajectory_graph = F,
+                              label_cell_groups = F,
+                              cell_size = 1.4) +
+  theme(legend.position = "bottom") +
+  scale_color_brewer(palette = "Set1")
+
+# Plot cell types
+cell_type_plots <- plot_cells(cds = cds,
+                              color_cells_by = "Cell.type",
+                              alpha = 0.7,
+                              show_trajectory_graph = F,
+                              label_cell_groups = F,
+                              cell_size = 1.4) +
+  theme(legend.position = "right") +
+  scale_color_brewer(palette = "Set1")
+
+# Display the combined plots
+leiden_Cluster + cell_type_plots
+louvain_Cluster + cell_type_plots
+```
+
+### Partition
+
+Partitions can be understaood as the super-clusters. Partitions in Monocle 3 are groups of cells that are determined based on their trajectory or pseudotime ordering. They don't necessarily represent different cell types or states but instead are groups of cells that might transition from one state to another along a developmental or differentiation trajectory. They help break down complex trajectory structures into more interpretable segments or branches, allowing for easier analysis of the dynamic processes. Partitions in Monocle can be viewed as "parts" of a trajectory where specific dynamic changes or transitions are occurring.
+
+<span style="color:blue">How do they differ from clusters?</span>
+
+Clusters are more static representations, indicating cells with a similar current state, whereas partitions in trajectory analyses can represent dynamic processes. Let's view them to understand them in more detail.
+
+```{r, "View clusters", echo=T, eval=T, message=F, warnings=F}
+# Plot cells colored by partition
+partition_plots <- plot_cells(cds = cds,
+                              color_cells_by = "partition",
+                              alpha = 0.7,
+                              show_trajectory_graph = F,
+                              label_cell_groups = F,
+                              cell_size = 1.4) +
+  theme(legend.position = "right") +
+  scale_color_brewer(palette = "Set1")
+
+# Display the plot
+partition_plots
+```
+
+The observed plot suggests that all cells are part of one partition, representing a single biological process – Hematopoiesis. This observation aligns with the underlying biology, lending confidence to the analysis.
+
+<span style="color:blue">What if multiple partitions are present in our dataset?</span>
+
+Multiple partitions might indicate cells undergoing different biological processes. It's crucial to distinguish genuine processes from artifacts, which we will discuss later.
+
+---
+
+## Learn the trajectory graph
+
+Now we will fit a principal graph within each partition. The principal graph is essentially a skeletal representation of the data's structure. Think of it like a "backbone" or a "roadmap" that captures the primary routes of cellular differentiation or progression within a dataset. It's a graph where nodes represent clusters or groups of similar cells, and edges depict the developmental or transitional paths between them. The graph captures the continuity and relationships between various cellular states.
+
+```{r, "Learn graph", echo=T, eval=T, message=F, warnings=F}
+# Fit the principal graph within the cell clusters
+cds <- learn_graph(cds = cds,
+                   use_partition = F,
+                   close_loop = F)
+```
+
+### Principal Graph
+```{r, "Plotting the graph", echo=T, eval=T, message=F, warnings=F, fig.width=12, fig.height=12}
+# Set show_trajectory_graph as true
+trajectory_plots <- plot_cells(cds = cds,
+                      color_cells_by = "partition",alpha = 0.7,
+                     show_trajectory_graph = T, # We will explore this later
+                     label_cell_groups = F, # This is to hide labels on the map
+                     cell_size = 0.1) +
+  scale_color_brewer(palette = "Set1")
+
+# Label principal Points
+ppoints_plots <- plot_cells(cds = cds,
+                            label_branch_points = T,
+                            label_principal_points = T,
+                      color_cells_by = "partition",alpha = 0.7,
+                     show_trajectory_graph = T, # We will explore this later
+                     label_cell_groups = F, # This is to hide labels on the map
+                     cell_size = 0.1) +
+  scale_color_brewer(palette = "Set1")
+
+# Set show_trajectory_graph as true
+trajectory_cellType_plots <- plot_cells(cds = cds,
+                      color_cells_by = "Cell.type",alpha = 0.7,
+                      label_principal_points = F,
+                     show_trajectory_graph = T, # We will explore this later
+                     label_cell_groups = T, graph_label_size = 0.1,
+                     cell_size = 0.5) +
+  scale_color_brewer(palette = "Set3")
+
+# Plot all together
+ggarrange(trajectory_plots, ppoints_plots, leiden_Cluster, trajectory_cellType_plots,
+          ncol = 2, nrow = 2, labels = c("A. Trajectory Graph", "B. Principal Points",
+                                         "C. Lieden Clusters", "D. Cell Types with Trajectory Graph"))
+```
+
+The concepts of principal graph and principal points are essential for understanding the functionality of Monocle3.
+
+1. **Principal Graph**: This refers to a structure used to describe the trajectory or developmental progression of cells. A principal graph can represent various types of trajectory, including linear progressions, bifurcations (where one lineage splits into two), and more complex tree structures. Essentially, it provides a way to organize cells based on their developmental or differentiation stage.
+
+2.  **Principal Points**: These are specific points along the principal graph. They represent specific states or stages in the trajectory. By defining these principal points, Monocle can map individual cells to their nearest point on the trajectory, giving a sense of where each cell lies in terms of its developmental progression.
+
+
+<span style="color:blue">Here we see one continous trajectory of the cells, what if we have dicontinous graphs?</span>
+
+We will analyze such scenarios later.
+
+---
+
+## Pseudotime Inference
+
+### What is Monocle3 Pseudotime
+In many biological processes, cells do not progress in perfect synchrony. In single-cell expression studies of processes such as cell differentiation, captured cells might be widely distributed in terms of progress. That is, in a population of cells captured at exactly the same time, some cells might be far along, while others might not yet even have begun the process. This asynchrony creates major problems when you want to understand the sequence of regulatory changes that occur as cells transition from one state to the next. Tracking the expression across cells captured at the same time produces a very compressed sense of a gene's kinetics, and the apparent variability of that gene's expression will be very high.
+
+By ordering each cell according to its progress along a learned trajectory, Monocle alleviates the problems that arise due to asynchrony. Instead of tracking changes in expression as a function of time, Monocle tracks changes as a function of progress along the trajectory, which we term "pseudotime". Pseudotime is an abstract unit of progress: it's simply the distance between a cell and the start of the trajectory, measured along the shortest path. The trajectory's total length is defined in terms of the total amount of transcriptional change that a cell undergoes as it moves from the starting state to the end state.
+
+### Selection of Start Points
+
+1. **Using the Shiny based Graphical Interface of Monocle3**
+
+```{r, "Shiny Show", echo=T, eval=F, message=F, warnings=F, fig.width=10, fig.height=10}
+# Launch the Shiny application to visualize and interact with the data
+cds_shiny <- order_cells(cds = cds, reduction_method = "UMAP")
+```
+
+2. **Supplying root cells as a vector**
+
+While Monocle3 provides an interactive interface to select starting points, it also offers flexibility to input root cells directly. Root cells act as the initiation point for constructing cellular trajectories.
+
+Given that we have Hematopoietic Stem Cells (HSCs) in our dataset, it makes intuitive sense to designate them as starting cells. Let's break this process down:
+
+1. First, highlight the starting cells on the UMAP.
+
+```{r, "Mark starting cells in UMAP", echo=T, eval=T, message=F, warnings=F, fig.width=10, fig.height=10}
+# Identify and color the HSCs in the UMAP visualization
+markers <- ifelse(cellMetaData$Cell.type == "Hematopoietic Stem Cells (HSCs)", "#f48b53", "lightgrey")
+
+marked_start_cells <- plot_cells(cds = cds,
+                      color_cells_by = "partition", alpha = 0.7,
+                      label_principal_points = F,
+                      show_trajectory_graph = T, # This showcases the trajectory
+                      label_cell_groups = T, graph_label_size = 0.1,
+                      cell_size = 0.5) + 
+  geom_point(aes(color = markers)) +
+  scale_color_identity() + 
+  theme(legend.position = "bottom")
+
+# Display the plot
+marked_start_cells
+```
+
+However, merely identifying HSCs might not be sufficient. There could be multiple clusters of HSCs, and not all of them would be ideal starting points for trajectory construction. A robust approach involves leveraging principal points to make a well-informed selection.
+
+2. Let's mark the prinicpal points
+
+```{r, "Mark starting cells in UMAP with prinicpal points", echo=T, eval=T, message=F, warnings=F, fig.width=10, fig.height=10}
+# Set show_trajectory_graph as true
+marked_ppoints_plots <- plot_cells(cds = cds,
+                            label_branch_points = T,
+                            label_principal_points = T,
+                      color_cells_by = "partition",alpha = 0.7,
+                     show_trajectory_graph = T, # We will explore this later
+                     label_cell_groups = F, # This is to hide labels on the map
+                     cell_size = 0.2) +  geom_point(aes(color = markers, alpha = 0.1)) +
+               scale_color_identity() 
+marked_ppoints_plots
+```
+
+From the visualization, it's evident that the bulk of HSCs cluster around the principal points Y_257 and Y_177. Let's set these as our root nodes.
+
+```{r, "Supply P points are root nodes", echo=T, eval=T, message=F, warnings=F, fig.width=10, fig.height=10}
+cds <- order_cells(cds, reduction_method = "UMAP",
+                   root_pr_nodes = c("Y_257", "Y_177"))
+```
+
+3. Plotting the Pseudotime
+```{r, "Plotting the Pseudotime", echo=T, eval=T, message=F, warnings=F, fig.width=14, fig.height=10}
+# Set show_trajectory_graph as true
+pseudotime_plot <- plot_cells(cds = cds,
+                            label_branch_points = T,
+                            label_principal_points = F,
+                      color_cells_by = "pseudotime",alpha = 0.7,
+                     show_trajectory_graph = T, # We will explore this later
+                     label_cell_groups = F, # This is to hide labels on the map
+                     cell_size = 1.3) 
+
+ggarrange(pseudotime_plot, cell_type_plots)
+```
+
+The pseudotime visualizations provide insights into cell differentiation over time. Cells with higher pseudotime values are more differentiated, while progenitor cells have lower values. Before extrapolating these findings, let's validate the trajectories using known marker expressions.
+
+---
+
+## Validation of known markers
+
+Monocle3 offers trend plots to visualize the expression profiles of genes along the pseudotime trajectory. 
+
+### Marker of HSCs: `CD34`
+
+From the ensuing plot, it becomes evident that the expression of CD34 decreases as the cells progress towards lineage commitment.
+
+```{r, "Plotting the CD34", echo=T, eval=T, message=F, warnings=F, fig.width=10, fig.height=7}
+# Extract expression data for CD34
+cds_cd34 <- cds[rowData(cds)$gene_short_name == "CD34", ]
+
+# Visualize the trend 
+trend_cd34 <- plot_genes_in_pseudotime(cds_cd34, 
+                         min_expr = 0.5,
+                         cell_size = 1.2,
+                         color_cells_by = "Cell.type") +
+  scale_color_brewer(palette = "Set1")
+
+# Display the plot
+trend_cd34
+```
+
+### Marker of HSCs: `MPO`
+
+```{r, "Plotting the MPO", echo=T, eval=T, message=F, warnings=F, fig.width=10, fig.height=7}
+# Extract expression data for MPO
+cds_mpo <- cds[rowData(cds)$gene_short_name == "MPO", ]
+
+# Visualize the trend 
+trend_mpo <- plot_genes_in_pseudotime(cds_mpo, 
+                         min_expr = 0.5,
+                         cell_size = 1.2,
+                         color_cells_by = "Cell.type") +
+  scale_color_brewer(palette = "Set1")
+
+# Display the plot
+trend_mpo
+```
+
+### Marker of HSCs: `IRF8`
+
+```{r, "Plotting the IRF8", echo=T, eval=T, message=F, warnings=F, fig.width=10, fig.height=7}
+# Extract expression data for IRF8
+cds_irf8 <- cds[rowData(cds)$gene_short_name == "IRF8", ]
+
+# Visualize the trend 
+trend_irf8 <- plot_genes_in_pseudotime(cds_irf8, 
+                         min_expr = 0.5,
+                         cell_size = 1.2,
+                         color_cells_by = "Cell.type") +
+  scale_color_brewer(palette = "Set1")
+
+# Display the plot
+trend_irf8
+```
+
+With this, we conclude the basic analysis using Monocle3.
+
+---

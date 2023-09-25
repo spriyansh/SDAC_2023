@@ -1,3 +1,4 @@
 help/library/ggplot2/html/scale_brewer.html,"R: Sequential, diverging and qualitative colour scales from..."
 help/library/monocle3/html/preprocess_cds.html,R: Preprocess a cds to prepare for trajectory inference
 help/library/monocle3/html/reduce_dimension.html,R: Compute a projection of a cell_data_set object into a lower...
+help/library/monocle3/html/cluster_cells.html,R: Cluster cells using Louvain/Leiden community detection

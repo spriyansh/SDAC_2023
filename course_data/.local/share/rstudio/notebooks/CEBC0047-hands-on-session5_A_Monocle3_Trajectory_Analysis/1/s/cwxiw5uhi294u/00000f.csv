@@ -1,8 +1,0 @@
-"0","# Monocle 3 allows do this to do pre-processing in 1 go"
-"0","cds = preprocess_cds(cds = cds,"
-"0","                      method = ""PCA"","
-"0","                     num_dim = 50,"
-"0","                     norm_method = ""log"","
-"0","                     pseudo_count = 1,"
-"0","                     scaling = T,"
-"0","                     verbose = F)"

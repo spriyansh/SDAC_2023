@@ -1097,3 +1097,1517 @@
 1695589987584:label_cell_groups = F, # This is to hide labels on the map
 1695589987597:cell_size = 1.4) + theme(legend.position = "bottom") +
 1695589987609:scale_color_brewer(palette = "Set1")
+1695627150394:knitr::opts_chunk$set(echo = TRUE)
+1695627173874:knitr::opts_chunk$set(echo = TRUE)
+1695627204227:knitr::opts_chunk$set(echo = TRUE)
+1695627204236:suppressPackageStartupMessages(library(SeuratDisk))
+1695627208049:suppressPackageStartupMessages(library(Seurat))
+1695627208489:suppressPackageStartupMessages(library(monocle3))
+1695627217397:suppressPackageStartupMessages(library(tidyverse))
+1695627218058:suppressPackageStartupMessages(library(ggplot2)) # For plotting
+1695627218059:suppressPackageStartupMessages(library(DT)) # For dynamic tables
+1695627218083:suppressPackageStartupMessages(library(ggpubr)) # For additional plotting tools
+1695627218167:# Parent directories
+1695627218168:inPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/input_data"
+1695627218169:outPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/output_data"
+1695627218175:# We will also create a few other empty directories in the output folder
+1695627218176:imgPath = paste(outPath, "images", sep = "/")
+1695627218248:tabPath = paste(outPath, "tables", sep = "/")
+1695627218251:rdsPath = paste(outPath, "rObjects", sep = "/")
+1695627218258:# Load the Seurat H5 using the Seurat function
+1695627218259:sob = LoadH5Seurat(file = paste(inPath, "setty_seurat_azimuth-classif.h5seurat", sep = "/"),
+1695627218261:verbose = F) # This suppresses all verbose messages
+1695627250114:# Checking Data
+1695627250115:DimPlot(sob, group.by = "predicted.celltype.l1", reduction = "tsne") +
+1695627250116:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695627250117:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+1695627250571:# Subset the dataset for HSPCs
+1695627250572:sob.sub = subset(sob, subset = predicted.celltype.l1 == "HSPC")
+1695627252860:# Print to console
+1695627252862:print(sob.sub)
+1695627252927:# Plotting the number of each cell type
+1695627252929:sob.sub@meta.data %>%
+1695627252931:group_by(predicted.celltype.l2) %>%
+1695627252932:summarise(count = n()) %>%
+1695627252934:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695627252935:geom_bar(stat="identity") + theme_minimal() +
+1695627252942:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695627252944:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695627253541:# Subset the dataset based on specific cell types
+1695627253543:sob.sub.1 = subset(sob.sub, subset = predicted.celltype.l2 %in% c("CLP", "Early Eryth", "EMP",
+1695627253544:"GMP", "HSC", "LMPP"))
+1695627255553:# Generate a bar plot of the selected cell types
+1695627255554:bar_p = sob.sub.1@meta.data %>%
+1695627255555:group_by(predicted.celltype.l2) %>%
+1695627255556:summarise(count = n()) %>%
+1695627255557:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695627255559:geom_bar(stat="identity") + theme_minimal() + scale_fill_brewer(palette = "Set1") +
+1695627255560:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695627255562:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695627255734:# tSNE plot of the subsetted cells
+1695627255736:tsne_sub = DimPlot(sob.sub.1, group.by = "predicted.celltype.l2", reduction = "tsne") +
+1695627255737:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695627255741:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+1695627255900:# Combine and display the tSNE and bar plots
+1695627255902:ggarrange(tsne_sub, bar_p)
+1695627256738:# Extracting the Raw counts
+1695627256751:rawCounts = sob.sub.1@assays$RNA@counts
+1695627256767:# Displaying a subset of the data for inspection
+1695627256780:datatable(as.data.frame(rawCounts[c(1:20),c(1:20)]),
+1695627256794:options = list(scrollX = TRUE,
+1695627256806:scroller = TRUE))
+1695627257010:# Extracting the cell metadata
+1695627257022:cellMetaData = sob.sub.1@meta.data
+1695627257046:# Appending descriptive names for the cell types
+1695627257059:cellMetaData[cellMetaData$predicted.celltype.l2 == "HSC", "Cell.type"] = "Hematopoietic Stem Cells (HSCs)"
+1695627257083:cellMetaData[cellMetaData$predicted.celltype.l2 == "CLP", "Cell.type"] = "Common Lymphoid Progenitor (CLPs)"
+1695627257106:cellMetaData[cellMetaData$predicted.celltype.l2 == "Early Eryth", "Cell.type"] = "Primitive Erythrocytes (PEs)"
+1695627257129:cellMetaData[cellMetaData$predicted.celltype.l2 == "EMP", "Cell.type"] = "Erythro-Myeloid Progenitors (EMPs)"
+1695627257152:cellMetaData[cellMetaData$predicted.celltype.l2 == "GMP", "Cell.type"] = "Granulocyte-Monocyte Progenitor (GMPs)"
+1695627257178:cellMetaData[cellMetaData$predicted.celltype.l2 == "LMPP", "Cell.type"] = "Lympho-Myeloid Primed Progenitor Cell (LMPPs)"
+1695627257205:# Displaying a subset of the metadata for inspection
+1695627257219:datatable(cellMetaData, options = list(scrollX = TRUE,
+1695627257233:scroller = TRUE))
+1695627257376:# Extracting the gene-level metadata
+1695627257391:geneMetaData = sob.sub.1@assays$RNA@meta.features
+1695627257407:# Displaying a subset of the gene metadata for inspection
+1695627257420:datatable(geneMetaData, options = list(scrollX = TRUE,
+1695627257433:scroller = TRUE))
+1695627257923:# Assigning row names to the gene_short_name column
+1695627257945:geneMetaData$gene_short_name = rownames(geneMetaData)
+1695627258132:# Displaying the updated gene metadata for verification
+1695627258171:datatable(geneMetaData, options = list(scrollX = TRUE,
+1695627258184:scroller = TRUE))
+1695627258636:# Generating the CDS using Monocle3's built-in function
+1695627258650:cds = new_cell_data_set(expression_data = rawCounts,
+1695627258662:cell_metadata = cellMetaData,
+1695627258674:gene_metadata = geneMetaData)
+1695627259520:# Displaying the newly created CDS
+1695627259537:cds
+1695627259683:# Monocle 3 allows do this pre-processing in 1 go
+1695627259699:cds = preprocess_cds(cds = cds,
+1695627259714:method = "PCA",
+1695627259727:num_dim = 50,
+1695627259739:norm_method = "log",
+1695627259754:pseudo_count = 1,
+1695627259766:scaling = T,
+1695627259778:verbose = F)
+1695627345194:?reduce_dimension
+1695627382803:# Monocle 3 allows do this to do pre-processing in 1 go
+1695627382817:cds = reduce_dimension(cds = cds,
+1695627382829:max_components = 3,
+1695627382841:reduction_method = "UMAP",
+1695627382853:preprocess_method = "PCA",
+1695627382865:umap.min_dist = 0.2,
+1695627382877:umap.n_neighbors = 15)
+1695627389925:# We have other options as well
+1695627389936:cds_tsne = reduce_dimension(cds = cds,
+1695627389947:max_components = 3,
+1695627389958:reduction_method = "tSNE",
+1695627389969:preprocess_method = "PCA",
+1695627389980:umap.min_dist = 0.2,
+1695627389992:umap.n_neighbors = 15)
+1695627405826:# We have other options as well
+1695627405837:cds_PCA = reduce_dimension(cds = cds,
+1695627405848:max_components = 3,
+1695627405859:reduction_method = "PCA",
+1695627405871:preprocess_method = "PCA",
+1695627405882:umap.min_dist = 0.2,
+1695627405893:umap.n_neighbors = 15)
+1695627482175:# 2D plot PCA
+1695627482187:cds_PCA_plot = plot_cells(cds = cds_PCA,
+1695627482199:color_cells_by = "Cell.type",alpha = 0.7,
+1695627482210:show_trajectory_graph = F, # We will explore this later
+1695627482222:label_cell_groups = F, # This is to hide labels on the map
+1695627482233:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627482243:scale_color_brewer(palette = "Set1")
+1695627483131:# 2D plot tSNE
+1695627483154:cds_tSNE_plot = plot_cells(cds = cds_tsne,
+1695627483166:color_cells_by = "Cell.type",alpha = 0.7,
+1695627483182:show_trajectory_graph = F, # We will explore this later
+1695627483198:label_cell_groups = F, # This is to hide labels on the map
+1695627483210:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627483223:scale_color_brewer(palette = "Set1")
+1695627506824:# Plot
+1695627506835:ggarrange(cds_tSNE_plot, cds_PCA_plot)
+1695627535049:# Monocle 3 allows do this to do pre-processing in 1 go
+1695627535062:cds = reduce_dimension(cds = cds,
+1695627535075:max_components = 3,
+1695627535087:reduction_method = "UMAP",
+1695627535099:preprocess_method = "PCA",
+1695627535111:umap.min_dist = 0.2,
+1695627535122:umap.n_neighbors = 15)
+1695627542668:# We have other options as well
+1695627542680:cds_tsne = reduce_dimension(cds = cds,
+1695627542691:max_components = 3,
+1695627542702:reduction_method = "tSNE",
+1695627542714:preprocess_method = "PCA",
+1695627542727:umap.min_dist = 0.2,
+1695627542740:umap.n_neighbors = 15)
+1695627558869:# We have other options as well
+1695627558880:cds_PCA = reduce_dimension(cds = cds,
+1695627558893:max_components = 3,
+1695627558905:reduction_method = "PCA",
+1695627558919:preprocess_method = "PCA",
+1695627558932:umap.min_dist = 0.2,
+1695627558945:umap.n_neighbors = 15)
+1695627560640:# 2D plot PCA
+1695627560652:cds_PCA_plot = plot_cells(cds = cds_PCA, reduction_method = "PCA",
+1695627560664:color_cells_by = "Cell.type",alpha = 0.7,
+1695627560676:show_trajectory_graph = F, # We will explore this later
+1695627560687:label_cell_groups = F, # This is to hide labels on the map
+1695627560699:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627560712:scale_color_brewer(palette = "Set1")
+1695627560964:# 2D plot tSNE
+1695627560976:cds_tSNE_plot = plot_cells(cds = cds_tsne, reduction_method = "tSNE",
+1695627560989:color_cells_by = "Cell.type",alpha = 0.7,
+1695627561001:show_trajectory_graph = F, # We will explore this later
+1695627561015:label_cell_groups = F, # This is to hide labels on the map
+1695627561029:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627561042:scale_color_brewer(palette = "Set1")
+1695627561298:# Plot
+1695627561308:ggarrange(cds_tSNE_plot, cds_PCA_plot)
+1695627585137:# 2D plot PCA
+1695627585150:cds_PCA_plot = plot_cells(cds = cds_PCA, reduction_method = "PCA",
+1695627585162:color_cells_by = "Cell.type",alpha = 0.7,
+1695627585173:show_trajectory_graph = F, # We will explore this later
+1695627585185:label_cell_groups = F, # This is to hide labels on the map
+1695627585196:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627585207:scale_color_brewer(palette = "Set1")
+1695627585437:# 2D plot tSNE
+1695627585452:cds_tSNE_plot = plot_cells(cds = cds_tsne, reduction_method = "tSNE",
+1695627585468:color_cells_by = "Cell.type",alpha = 0.7,
+1695627585482:show_trajectory_graph = F, # We will explore this later
+1695627585496:label_cell_groups = F, # This is to hide labels on the map
+1695627585508:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627585525:scale_color_brewer(palette = "Set1")
+1695627585799:# Plot
+1695627585810:ggarrange(cds_tSNE_plot, cds_PCA_plot)
+1695627592641:# 2D plot PCA
+1695627592655:cds_PCA_plot = plot_cells(cds = cds_PCA, reduction_method = "PCA",
+1695627592666:color_cells_by = "Cell.type",alpha = 0.7,
+1695627592677:show_trajectory_graph = F, # We will explore this later
+1695627592688:label_cell_groups = F, # This is to hide labels on the map
+1695627592699:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627592711:scale_color_brewer(palette = "Set1")
+1695627592927:# 2D plot tSNE
+1695627592938:cds_tSNE_plot = plot_cells(cds = cds_tsne, reduction_method = "tSNE",
+1695627592950:color_cells_by = "Cell.type",alpha = 0.7,
+1695627592961:show_trajectory_graph = F, # We will explore this later
+1695627592974:label_cell_groups = F, # This is to hide labels on the map
+1695627592987:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627592999:scale_color_brewer(palette = "Set1")
+1695627594164:# Plot
+1695627594177:ggarrange(cds_tSNE_plot, cds_PCA_plot)
+1695627616586:# 2D plot PCA
+1695627616598:cds_PCA_plot = plot_cells(cds = cds_PCA, reduction_method = "PCA",
+1695627616610:color_cells_by = "Cell.type",alpha = 0.7,
+1695627616623:show_trajectory_graph = F, # We will explore this later
+1695627616634:label_cell_groups = F, # This is to hide labels on the map
+1695627616645:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627616655:scale_color_brewer(palette = "Set1")
+1695627616919:# 2D plot tSNE
+1695627616931:cds_tSNE_plot = plot_cells(cds = cds_tsne, reduction_method = "tSNE",
+1695627616944:color_cells_by = "Cell.type",alpha = 0.7,
+1695627616957:show_trajectory_graph = F, # We will explore this later
+1695627616969:label_cell_groups = F, # This is to hide labels on the map
+1695627616981:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627616994:scale_color_brewer(palette = "Set1")
+1695627617221:# Plot
+1695627617233:ggarrange(cds_tSNE_plot, cds_PCA_plot)
+1695627627837:# 2D plot PCA
+1695627627850:cds_PCA_plot = plot_cells(cds = cds_PCA, reduction_method = "PCA",
+1695627627861:color_cells_by = "Cell.type",alpha = 0.7,
+1695627627871:show_trajectory_graph = F, # We will explore this later
+1695627627882:label_cell_groups = F, # This is to hide labels on the map
+1695627627893:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627627903:scale_color_brewer(palette = "Set1")
+1695627628118:# 2D plot tSNE
+1695627628130:cds_tSNE_plot = plot_cells(cds = cds_tsne, reduction_method = "tSNE",
+1695627628142:color_cells_by = "Cell.type",alpha = 0.7,
+1695627628154:show_trajectory_graph = F, # We will explore this later
+1695627628167:label_cell_groups = F, # This is to hide labels on the map
+1695627628180:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627628193:scale_color_brewer(palette = "Set1")
+1695627628429:# Plot
+1695627628442:ggarrange(cds_tSNE_plot, cds_PCA_plot)
+1695627651864:# 2D plot
+1695627651887:plot_cells(cds = cds,
+1695627651901:color_cells_by = "Cell.type",alpha = 0.7,
+1695627651913:show_trajectory_graph = F, # We will explore this later
+1695627651925:label_cell_groups = F, # This is to hide labels on the map
+1695627651938:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695627651958:scale_color_brewer(palette = "Set1")
+1695627652495:# 3d Plot
+1695627652511:plot_cells_3d(cds = cds,
+1695627652523:color_cells_by = "Cell.type",
+1695627652534:show_trajectory_graph = F, # We will explore this later
+1695627652545:cell_size = 10)
+1695628060152:?cluster_cells
+1695628097865:cds_louvain <- cluster_cells(cds = cds,
+1695628097878:reduction_method = "UMAP",
+1695628097890:cluster_method = "louvain")
+1695628105029:cds <- cluster_cells(cds = cds,
+1695628105041:reduction_method = "UMAP",
+1695628105053:cluster_method = "leiden")
+1695628107939:cds_louvain <- cluster_cells(cds = cds,
+1695628107950:reduction_method = "UMAP",
+1695628107961:cluster_method = "louvain")
+1695628240714:# Lieden Clusters
+1695628240731:lieden_Cluster <- plot_cells(cds = cds,
+1695628240743:color_cells_by = "clusters",alpha = 0.7,
+1695628240755:show_trajectory_graph = F, # We will explore this later
+1695628240766:label_cell_groups = F, # This is to hide labels on the map
+1695628240778:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628240790:scale_color_brewer(palette = "Set1")
+1695628248190:# Lieden Clusters
+1695628248202:lieden_Cluster <- plot_cells(cds = cds,
+1695628248214:color_cells_by = "cluster",alpha = 0.7,
+1695628248225:show_trajectory_graph = F, # We will explore this later
+1695628248236:label_cell_groups = F, # This is to hide labels on the map
+1695628248248:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628248259:scale_color_brewer(palette = "Set1")
+1695628248485:# louvain Clusters
+1695628248497:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628248510:color_cells_by = "cluster",alpha = 0.7,
+1695628248523:show_trajectory_graph = F, # We will explore this later
+1695628248536:label_cell_groups = F, # This is to hide labels on the map
+1695628248547:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628248560:scale_color_brewer(palette = "Set1")
+1695628248820:# Cell Types
+1695628248831:cell_type_plots <- plot_cells(cds = cds,
+1695628248841:color_cells_by = "Cell.type",alpha = 0.7,
+1695628248853:show_trajectory_graph = F, # We will explore this later
+1695628248863:label_cell_groups = F, # This is to hide labels on the map
+1695628248875:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628248886:scale_color_brewer(palette = "Set1")
+1695628310665:# Plot
+1695628310677:ggarrange(lieden_Cluster, cell_type_plots, louvain_Cluster, ncol = 3,
+1695628310688:labels = c("Lieden Clusters", "Azimuth Cell Types", "Louvain Clusters"))
+1695628331406:# Lieden Clusters
+1695628331420:lieden_Cluster <- plot_cells(cds = cds,
+1695628331432:color_cells_by = "cluster",alpha = 0.7,
+1695628331443:show_trajectory_graph = F, # We will explore this later
+1695628331454:label_cell_groups = F, # This is to hide labels on the map
+1695628331466:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628331477:scale_color_brewer(palette = "Set3")
+1695628331705:# louvain Clusters
+1695628331717:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628331730:color_cells_by = "cluster",alpha = 0.7,
+1695628331744:show_trajectory_graph = F, # We will explore this later
+1695628331758:label_cell_groups = F, # This is to hide labels on the map
+1695628331771:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628331785:scale_color_brewer(palette = "Set3")
+1695628332011:# Cell Types
+1695628332025:cell_type_plots <- plot_cells(cds = cds,
+1695628332038:color_cells_by = "Cell.type",alpha = 0.7,
+1695628332049:show_trajectory_graph = F, # We will explore this later
+1695628332061:label_cell_groups = F, # This is to hide labels on the map
+1695628332116:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628332129:scale_color_brewer(palette = "Set3")
+1695628332336:# Plot
+1695628332348:ggarrange(lieden_Cluster, cell_type_plots, louvain_Cluster, ncol = 3,
+1695628332359:labels = c("Lieden Clusters", "Azimuth Cell Types", "Louvain Clusters"))
+1695628378214:cds <- cluster_cells(cds = cds,
+1695628378226:reduction_method = "UMAP",
+1695628378238:cluster_method = "leiden",
+1695628378249:resolution = 0.01)
+1695628381130:cds_louvain <- cluster_cells(cds = cds,
+1695628381141:resolution = 0.01,
+1695628381152:reduction_method = "UMAP",
+1695628381163:cluster_method = "louvain")
+1695628389242:# Lieden Clusters
+1695628389254:lieden_Cluster <- plot_cells(cds = cds,
+1695628389267:color_cells_by = "cluster",alpha = 0.7,
+1695628389278:show_trajectory_graph = F, # We will explore this later
+1695628389289:label_cell_groups = F, # This is to hide labels on the map
+1695628389301:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628389313:scale_color_brewer(palette = "Set3")
+1695628389534:# louvain Clusters
+1695628389547:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628389561:color_cells_by = "cluster",alpha = 0.7,
+1695628389573:show_trajectory_graph = F, # We will explore this later
+1695628389586:label_cell_groups = F, # This is to hide labels on the map
+1695628389599:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628389613:scale_color_brewer(palette = "Set3")
+1695628389837:# Cell Types
+1695628389850:cell_type_plots <- plot_cells(cds = cds,
+1695628389862:color_cells_by = "Cell.type",alpha = 0.7,
+1695628389875:show_trajectory_graph = F, # We will explore this later
+1695628389887:label_cell_groups = F, # This is to hide labels on the map
+1695628389898:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628389909:scale_color_brewer(palette = "Set3")
+1695628390128:# Plot
+1695628390141:ggarrange(lieden_Cluster, cell_type_plots, louvain_Cluster, ncol = 3,
+1695628390154:labels = c("Lieden Clusters", "Azimuth Cell Types", "Louvain Clusters"))
+1695628434637:cds <- cluster_cells(cds = cds,
+1695628434649:reduction_method = "UMAP",
+1695628434663:cluster_method = "leiden",
+1695628434685:resolution = 0.01)
+1695628437995:cds_louvain <- cluster_cells(cds = cds,
+1695628438008:resolution = 0.01,
+1695628438019:reduction_method = "UMAP",
+1695628438031:cluster_method = "louvain")
+1695628443718:# Lieden Clusters
+1695628443730:lieden_Cluster <- plot_cells(cds = cds,
+1695628443742:color_cells_by = "cluster",alpha = 0.7,
+1695628443753:show_trajectory_graph = F, # We will explore this later
+1695628443765:label_cell_groups = F, # This is to hide labels on the map
+1695628443778:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628443790:scale_color_brewer(palette = "Set3")
+1695628444022:# louvain Clusters
+1695628444036:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628444051:color_cells_by = "cluster",alpha = 0.7,
+1695628444064:show_trajectory_graph = F, # We will explore this later
+1695628444077:label_cell_groups = F, # This is to hide labels on the map
+1695628444090:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628444105:scale_color_brewer(palette = "Set3")
+1695628444333:# Cell Types
+1695628444346:cell_type_plots <- plot_cells(cds = cds,
+1695628444358:color_cells_by = "Cell.type",alpha = 0.7,
+1695628444371:show_trajectory_graph = F, # We will explore this later
+1695628444384:label_cell_groups = F, # This is to hide labels on the map
+1695628444395:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628444406:scale_color_brewer(palette = "Set3")
+1695628444627:# Plot
+1695628444640:ggarrange(lieden_Cluster, cell_type_plots, louvain_Cluster, ncol = 3,
+1695628444653:labels = c("Lieden Clusters", "Azimuth Cell Types", "Louvain Clusters"))
+1695628459862:# Lieden Clusters
+1695628459874:lieden_Cluster <- plot_cells(cds = cds,
+1695628459886:color_cells_by = "cluster",alpha = 0.7,
+1695628459897:show_trajectory_graph = F, # We will explore this later
+1695628459909:label_cell_groups = F, # This is to hide labels on the map
+1695628459920:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628459931:scale_color_brewer(palette = "Set3")
+1695628460150:# louvain Clusters
+1695628460163:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628460175:color_cells_by = "cluster",alpha = 0.7,
+1695628460187:show_trajectory_graph = F, # We will explore this later
+1695628460200:label_cell_groups = F, # This is to hide labels on the map
+1695628460212:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628460225:scale_color_brewer(palette = "Set3")
+1695628460483:# Cell Types
+1695628460497:cell_type_plots <- plot_cells(cds = cds,
+1695628460512:color_cells_by = "Cell.type",alpha = 0.7,
+1695628460524:show_trajectory_graph = F, # We will explore this later
+1695628460536:label_cell_groups = F, # This is to hide labels on the map
+1695628460548:cell_size = 1.4) + theme(legend.position = "left") +
+1695628460560:scale_color_brewer(palette = "Set3")
+1695628460779:# Plot
+1695628460791:ggarrange(lieden_Cluster, cell_type_plots, louvain_Cluster, ncol = 3,
+1695628460804:labels = c("Lieden Clusters", "Azimuth Cell Types", "Louvain Clusters"))
+1695628508944:# Plot
+1695628508957:ggarrange(lieden_Cluster, louvain_Cluster, cell_type_plots, ncol = 2, nrow = 2,
+1695628508969:labels = c("Lieden Clusters", "Louvain Clusters", "Azimuth Cell Types"))
+1695628514824:# Lieden Clusters
+1695628514836:lieden_Cluster <- plot_cells(cds = cds,
+1695628514848:color_cells_by = "cluster",alpha = 0.7,
+1695628514859:show_trajectory_graph = F, # We will explore this later
+1695628514870:label_cell_groups = F, # This is to hide labels on the map
+1695628514880:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628514890:scale_color_brewer(palette = "Set3")
+1695628515110:# louvain Clusters
+1695628515123:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628515137:color_cells_by = "cluster",alpha = 0.7,
+1695628515152:show_trajectory_graph = F, # We will explore this later
+1695628515166:label_cell_groups = F, # This is to hide labels on the map
+1695628515180:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628515194:scale_color_brewer(palette = "Set3")
+1695628515428:# Cell Types
+1695628515440:cell_type_plots <- plot_cells(cds = cds,
+1695628515453:color_cells_by = "Cell.type",alpha = 0.7,
+1695628515465:show_trajectory_graph = F, # We will explore this later
+1695628515478:label_cell_groups = F, # This is to hide labels on the map
+1695628515490:cell_size = 1.4) + theme(legend.position = "right") +
+1695628515502:scale_color_brewer(palette = "Set3")
+1695628515792:# Plot
+1695628515805:ggarrange(lieden_Cluster, louvain_Cluster, cell_type_plots, ncol = 2, nrow = 2,
+1695628515826:labels = c("Lieden Clusters", "Louvain Clusters", "Azimuth Cell Types"))
+1695628531495:# Lieden Clusters
+1695628531507:lieden_Cluster <- plot_cells(cds = cds,
+1695628531519:color_cells_by = "cluster",alpha = 0.7,
+1695628531530:show_trajectory_graph = F, # We will explore this later
+1695628531542:label_cell_groups = F, # This is to hide labels on the map
+1695628531552:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628531563:scale_color_brewer(palette = "Set3")
+1695628531784:# louvain Clusters
+1695628531797:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628531810:color_cells_by = "cluster",alpha = 0.7,
+1695628531822:show_trajectory_graph = F, # We will explore this later
+1695628531835:label_cell_groups = F, # This is to hide labels on the map
+1695628531849:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628531863:scale_color_brewer(palette = "Set3")
+1695628532087:# Cell Types
+1695628532099:cell_type_plots <- plot_cells(cds = cds,
+1695628532111:color_cells_by = "Cell.type",alpha = 0.7,
+1695628532123:show_trajectory_graph = F, # We will explore this later
+1695628532136:label_cell_groups = F, # This is to hide labels on the map
+1695628532149:cell_size = 1.4) + theme(legend.position = "right") +
+1695628532161:scale_color_brewer(palette = "Set3")
+1695628532383:# Plot
+1695628532396:ggarrange(lieden_Cluster, louvain_Cluster, cell_type_plots, ncol = 2, nrow = 2,
+1695628532411:labels = c("Lieden Clusters", "Louvain Clusters", "Azimuth Cell Types"))
+1695628597901:cds <- cluster_cells(cds = cds,
+1695628597918:reduction_method = "UMAP",
+1695628597932:cluster_method = "leiden",
+1695628597946:resolution = 0.01,
+1695628597959:k = 25)
+1695628601770:cds_louvain <- cluster_cells(cds = cds,
+1695628601782:k = 25,
+1695628601794:resolution = 0.01,
+1695628601805:reduction_method = "UMAP",
+1695628601816:cluster_method = "louvain")
+1695628613317:# Lieden Clusters
+1695628613330:lieden_Cluster <- plot_cells(cds = cds,
+1695628613342:color_cells_by = "cluster",alpha = 0.7,
+1695628613355:show_trajectory_graph = F, # We will explore this later
+1695628613367:label_cell_groups = F, # This is to hide labels on the map
+1695628613378:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628613390:scale_color_brewer(palette = "Set3")
+1695628613631:# louvain Clusters
+1695628613648:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628613664:color_cells_by = "cluster",alpha = 0.7,
+1695628613679:show_trajectory_graph = F, # We will explore this later
+1695628613697:label_cell_groups = F, # This is to hide labels on the map
+1695628613714:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628613728:scale_color_brewer(palette = "Set3")
+1695628613968:# Cell Types
+1695628613980:cell_type_plots <- plot_cells(cds = cds,
+1695628613992:color_cells_by = "Cell.type",alpha = 0.7,
+1695628614004:show_trajectory_graph = F, # We will explore this later
+1695628614015:label_cell_groups = F, # This is to hide labels on the map
+1695628614026:cell_size = 1.4) + theme(legend.position = "right") +
+1695628614036:scale_color_brewer(palette = "Set3")
+1695628614318:# Plot
+1695628614331:ggarrange(lieden_Cluster, louvain_Cluster, cell_type_plots, ncol = 2, nrow = 2,
+1695628614346:labels = c("Lieden Clusters", "Louvain Clusters", "Azimuth Cell Types"))
+1695628630287:cds <- cluster_cells(cds = cds,
+1695628630300:reduction_method = "UMAP",
+1695628630312:cluster_method = "leiden",
+1695628630324:#resolution = 0.01,
+1695628630336:k = 25)
+1695628633625:cds_louvain <- cluster_cells(cds = cds,
+1695628633638:k = 25,
+1695628633651:resolution = 0.01,
+1695628633663:reduction_method = "UMAP",
+1695628633675:cluster_method = "louvain")
+1695628636845:# Lieden Clusters
+1695628636858:lieden_Cluster <- plot_cells(cds = cds,
+1695628636872:color_cells_by = "cluster",alpha = 0.7,
+1695628636884:show_trajectory_graph = F, # We will explore this later
+1695628636897:label_cell_groups = F, # This is to hide labels on the map
+1695628636910:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628636922:scale_color_brewer(palette = "Set3")
+1695628637164:# louvain Clusters
+1695628637176:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628637188:color_cells_by = "cluster",alpha = 0.7,
+1695628637200:show_trajectory_graph = F, # We will explore this later
+1695628637212:label_cell_groups = F, # This is to hide labels on the map
+1695628637224:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628637236:scale_color_brewer(palette = "Set3")
+1695628637461:# Cell Types
+1695628637473:cell_type_plots <- plot_cells(cds = cds,
+1695628637486:color_cells_by = "Cell.type",alpha = 0.7,
+1695628637499:show_trajectory_graph = F, # We will explore this later
+1695628637512:label_cell_groups = F, # This is to hide labels on the map
+1695628637523:cell_size = 1.4) + theme(legend.position = "right") +
+1695628637535:scale_color_brewer(palette = "Set3")
+1695628637748:# Plot
+1695628637759:ggarrange(lieden_Cluster, louvain_Cluster, cell_type_plots, ncol = 2, nrow = 2,
+1695628637771:labels = c("Lieden Clusters", "Louvain Clusters", "Azimuth Cell Types"))
+1695628654813:cds <- cluster_cells(cds = cds,
+1695628654826:reduction_method = "UMAP",
+1695628654837:cluster_method = "leiden",
+1695628654848:resolution = 0.01,
+1695628654859:k = 25)
+1695628658171:cds_louvain <- cluster_cells(cds = cds,
+1695628658184:k = 25,
+1695628658196:resolution = 0.01,
+1695628658208:reduction_method = "UMAP",
+1695628658221:cluster_method = "louvain")
+1695628672355:# Lieden Clusters
+1695628672367:lieden_Cluster <- plot_cells(cds = cds,
+1695628672379:color_cells_by = "cluster",alpha = 0.7,
+1695628672390:show_trajectory_graph = F, # We will explore this later
+1695628672402:label_cell_groups = F, # This is to hide labels on the map
+1695628672414:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628672435:scale_color_brewer(palette = "Set3")
+1695628672669:# louvain Clusters
+1695628672683:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628672698:color_cells_by = "cluster",alpha = 0.7,
+1695628672713:show_trajectory_graph = F, # We will explore this later
+1695628672727:label_cell_groups = F, # This is to hide labels on the map
+1695628672743:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628672758:scale_color_brewer(palette = "Set1")
+1695628673021:# Cell Types
+1695628673032:cell_type_plots <- plot_cells(cds = cds,
+1695628673044:color_cells_by = "Cell.type",alpha = 0.7,
+1695628673056:show_trajectory_graph = F, # We will explore this later
+1695628673068:label_cell_groups = F, # This is to hide labels on the map
+1695628673080:cell_size = 1.4) + theme(legend.position = "right") +
+1695628673092:scale_color_brewer(palette = "Set1")
+1695628673333:# Plot
+1695628673347:ggarrange(lieden_Cluster, louvain_Cluster, cell_type_plots, ncol = 2, nrow = 2,
+1695628673362:labels = c("Lieden Clusters", "Louvain Clusters", "Azimuth Cell Types"))
+1695628701506:# Plot
+1695628701518:lieden_Cluster + cell_type_plots
+1695628735689:# Plot
+1695628735701:ggarrange(a, b, cell_type_plots, ncol = 1, nrow = 2)
+1695628737389:# Plot
+1695628737401:a <- lieden_Cluster + cell_type_plots
+1695628737692:b <- louvain_Cluster + cell_type_plots
+1695628738091:# Plot
+1695628738098:ggarrange(a, b, cell_type_plots, ncol = 1, nrow = 2)
+1695628780326:# Lieden Clusters
+1695628780330:lieden_Cluster <- plot_cells(cds = cds,
+1695628780334:color_cells_by = "cluster",alpha = 0.7,
+1695628780337:show_trajectory_graph = F, # We will explore this later
+1695628780340:label_cell_groups = F, # This is to hide labels on the map
+1695628780343:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628780346:scale_color_brewer(palette = "Set3")
+1695628780595:# louvain Clusters
+1695628780598:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695628780601:color_cells_by = "cluster",alpha = 0.7,
+1695628780605:show_trajectory_graph = F, # We will explore this later
+1695628780608:label_cell_groups = F, # This is to hide labels on the map
+1695628780612:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695628780615:scale_color_brewer(palette = "Set1")
+1695628780861:# Cell Types
+1695628780864:cell_type_plots <- plot_cells(cds = cds,
+1695628780867:color_cells_by = "Cell.type",alpha = 0.7,
+1695628780870:show_trajectory_graph = F, # We will explore this later
+1695628780873:label_cell_groups = F, # This is to hide labels on the map
+1695628780876:cell_size = 1.4) + theme(legend.position = "right") +
+1695628780879:scale_color_brewer(palette = "Set1")
+1695628781115:# Plot lieden_Cluster
+1695628781118:lieden_Cluster + cell_type_plots
+1695628781792:# Plot louvain_Cluster
+1695628781799:louvain_Cluster + cell_type_plots
+1695629112239:partition_plots <- plot_cells(cds = cds,
+1695629112246:color_cells_by = "partition",alpha = 0.7,
+1695629112250:show_trajectory_graph = F, # We will explore this later
+1695629112253:label_cell_groups = F, # This is to hide labels on the map
+1695629112256:cell_size = 1.4) + theme(legend.position = "right") +
+1695629112258:scale_color_brewer(palette = "Set1")
+1695629127564:partition_plots
+1695629663020:cds <- learn_graph(cds = cds,
+1695629663029:use_partition = F, # We will see it later
+1695629663033:close_loop = F)  # We will see it later
+1695631234703:# Set colour label as partition
+1695631234708:trajectory_plots <- plot_cells(cds = cds,
+1695631234712:color_cells_by = "partition",alpha = 0.7,
+1695631234715:show_trajectory_graph = T, # We will explore this later
+1695631234719:label_cell_groups = F, # This is to hide labels on the map
+1695631234722:cell_size = 0.1) + theme(legend.position = "right") +
+1695631234725:scale_color_brewer(palette = "Set1")
+1695631239804:trajectory_plots
+1695631281216:# Set colour label as partition
+1695631281224:trajectory_plots <- plot_cells(cds = cds,
+1695631281228:color_cells_by = "partition",alpha = 0.7,
+1695631281230:show_trajectory_graph = T, # We will explore this later
+1695631281233:label_cell_groups = F, # This is to hide labels on the map
+1695631281236:cell_size = 0.1) +
+1695631281239:scale_color_brewer(palette = "Set1")
+1695631339660:# Label principal Points
+1695631339663:ppoints_plots <- plot_cells(cds = cds,
+1695631339666:label_branch_points = T,
+1695631339669:label_principal_points = T,
+1695631339672:color_cells_by = "partition",alpha = 0.7,
+1695631339675:show_trajectory_graph = T, # We will explore this later
+1695631339677:label_cell_groups = F, # This is to hide labels on the map
+1695631339680:cell_size = 0.1) +
+1695631339683:scale_color_brewer(palette = "Set1")
+1695631342648:ppoints_plots
+1695631423695:# Set show_trajectory_graph as true
+1695631423703:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631423706:color_cells_by = "Cell.type",alpha = 0.7,
+1695631423709:show_trajectory_graph = T, # We will explore this later
+1695631423712:label_cell_groups = F, # This is to hide labels on the map
+1695631423715:cell_size = 0.1) +
+1695631423718:scale_color_brewer(palette = "Set1")
+1695631462168:# Set show_trajectory_graph as true
+1695631462173:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631462176:color_cells_by = "Cell.type",alpha = 0.7,
+1695631462179:show_trajectory_graph = T, # We will explore this later
+1695631462181:label_cell_groups = T, graph_label_size = 2,
+1695631462184:cell_size = 0.1) +
+1695631462187:scale_color_brewer(palette = "Set1")
+1695631465382:trajectory_cellType_plots
+1695631472554:# Set show_trajectory_graph as true
+1695631472562:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631472569:color_cells_by = "Cell.type",alpha = 0.7,
+1695631472580:show_trajectory_graph = T, # We will explore this later
+1695631472588:label_cell_groups = T, graph_label_size = 2,
+1695631472605:cell_size = 0.5) +
+1695631472614:scale_color_brewer(palette = "Set1")
+1695631475394:trajectory_cellType_plots
+1695631479710:# Set show_trajectory_graph as true
+1695631479714:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631479717:color_cells_by = "Cell.type",alpha = 0.7,
+1695631479720:show_trajectory_graph = F, # We will explore this later
+1695631479722:label_cell_groups = T, graph_label_size = 2,
+1695631479725:cell_size = 0.5) +
+1695631479727:scale_color_brewer(palette = "Set1")
+1695631482241:# Set show_trajectory_graph as true
+1695631482245:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631482248:color_cells_by = "Cell.type",alpha = 0.7,
+1695631482251:show_trajectory_graph = F, # We will explore this later
+1695631482253:label_cell_groups = T, graph_label_size = 2,
+1695631482256:cell_size = 0.5) +
+1695631482258:scale_color_brewer(palette = "Set3")
+1695631485583:trajectory_cellType_plots
+1695631499573:# Set show_trajectory_graph as true
+1695631499579:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631499582:color_cells_by = "Cell.type",alpha = 0.7,
+1695631499585:label_principal_points = F,
+1695631499588:show_trajectory_graph = T, # We will explore this later
+1695631499591:label_cell_groups = T, graph_label_size = 2,
+1695631499593:cell_size = 0.5) +
+1695631499596:scale_color_brewer(palette = "Set3")
+1695631502571:trajectory_cellType_plots
+1695631510153:# Set show_trajectory_graph as true
+1695631510162:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631510217:color_cells_by = "Cell.type",alpha = 0.7,
+1695631510223:label_principal_points = F,
+1695631510228:show_trajectory_graph = T, # We will explore this later
+1695631510232:label_cell_groups = T, graph_label_size = 10,
+1695631510236:cell_size = 0.5) +
+1695631510240:scale_color_brewer(palette = "Set3")
+1695631513702:trajectory_cellType_plots
+1695631521328:# Set show_trajectory_graph as true
+1695631521333:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631521336:color_cells_by = "Cell.type",alpha = 0.7,
+1695631521339:label_principal_points = F,
+1695631521341:show_trajectory_graph = T, # We will explore this later
+1695631521344:label_cell_groups = T, graph_label_size = 0.1,
+1695631521346:cell_size = 0.5) +
+1695631521349:scale_color_brewer(palette = "Set3")
+1695631541532:# Set show_trajectory_graph as true
+1695631541535:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631541538:color_cells_by = "Cell.type",alpha = 0.7,
+1695631541541:label_principal_points = F,
+1695631541543:show_trajectory_graph = T, # We will explore this later
+1695631541547:label_cell_groups = T, graph_label_size = 0.1,
+1695631541549:cell_size = 0.5) +
+1695631541552:scale_color_brewer(palette = "Set3")
+1695631544342:trajectory_cellType_plots
+1695631613066:ggarrange(trajectory_plots, ppoints_plots, cell_type_plots, trajectory_cellType_plots,
+1695631613071:ncol = 2, nrow = 2, labels = c("A. Trajectory Graph", "B. Principal Points",
+1695631613074:"C. Cell Types", "D. Cell Types with Trajectory Graph"))
+1695631620975:ggarrange(trajectory_plots, ppoints_plots, cell_type_plots, trajectory_cellType_plots,
+1695631620979:ncol = 2, nrow = 2, labels = c("A. Trajectory Graph", "B. Principal Points",
+1695631620979:"C. Cell Types", "D. Cell Types with Trajectory Graph"))
+1695631683175:ggarrange(trajectory_plots, ppoints_plots, lieden_Cluster, trajectory_cellType_plots,
+1695631683179:ncol = 2, nrow = 2, labels = c("A. Trajectory Graph", "B. Principal Points",
+1695631683180:"C. Lieden Clusters", "D. Cell Types with Trajectory Graph"))
+1695631704990:# Set show_trajectory_graph as true
+1695631704996:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631704999:color_cells_by = "Cell.type",alpha = 0.7,
+1695631705002:label_principal_points = F,
+1695631705005:show_trajectory_graph = T, # We will explore this later
+1695631705007:label_cell_groups = T, graph_label_size = 0.1,
+1695631705010:cell_size = 0.5) +
+1695631705013:scale_color_brewer(palette = "Set1")
+1695631706324:ggarrange(trajectory_plots, ppoints_plots, lieden_Cluster, trajectory_cellType_plots,
+1695631706328:ncol = 2, nrow = 2, labels = c("A. Trajectory Graph", "B. Principal Points",
+1695631706331:"C. Lieden Clusters", "D. Cell Types with Trajectory Graph"))
+1695631719327:# Set show_trajectory_graph as true
+1695631719335:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631719341:color_cells_by = "Cell.type",alpha = 0.7,
+1695631719347:label_principal_points = F,
+1695631719350:show_trajectory_graph = T, # We will explore this later
+1695631719353:label_cell_groups = T, graph_label_size = 0.1,
+1695631719355:cell_size = 0.5) +
+1695631719357:scale_color_brewer(palette = "Set3")
+1695631721292:ggarrange(trajectory_plots, ppoints_plots, lieden_Cluster, trajectory_cellType_plots,
+1695631721296:ncol = 2, nrow = 2, labels = c("A. Trajectory Graph", "B. Principal Points",
+1695631721299:"C. Lieden Clusters", "D. Cell Types with Trajectory Graph"))
+1695631779057:# Set show_trajectory_graph as true
+1695631779062:trajectory_plots <- plot_cells(cds = cds,
+1695631779066:color_cells_by = "partition",alpha = 0.7,
+1695631779069:show_trajectory_graph = T, # We will explore this later
+1695631779072:label_cell_groups = F, # This is to hide labels on the map
+1695631779075:cell_size = 0.1) +
+1695631779078:scale_color_brewer(palette = "Set1")
+1695631779426:# Label principal Points
+1695631779429:ppoints_plots <- plot_cells(cds = cds,
+1695631779433:label_branch_points = T,
+1695631779436:label_principal_points = T,
+1695631779439:color_cells_by = "partition",alpha = 0.7,
+1695631779443:show_trajectory_graph = T, # We will explore this later
+1695631779446:label_cell_groups = F, # This is to hide labels on the map
+1695631779449:cell_size = 0.1) +
+1695631779453:scale_color_brewer(palette = "Set1")
+1695631779765:# Set show_trajectory_graph as true
+1695631779768:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631779771:color_cells_by = "Cell.type",alpha = 0.7,
+1695631779773:label_principal_points = F,
+1695631779776:show_trajectory_graph = T, # We will explore this later
+1695631779779:label_cell_groups = T, graph_label_size = 0.1,
+1695631779782:cell_size = 0.5) +
+1695631779785:scale_color_brewer(palette = "Set3")
+1695631780273:# Plot all together
+1695631780276:ggarrange(trajectory_plots, ppoints_plots, lieden_Cluster, trajectory_cellType_plots,
+1695631780280:ncol = 2, nrow = 2, labels = c("A. Trajectory Graph", "B. Principal Points",
+1695631780284:"C. Lieden Clusters", "D. Cell Types with Trajectory Graph"))
+1695631809984:# Set show_trajectory_graph as true
+1695631809989:trajectory_plots <- plot_cells(cds = cds,
+1695631809993:color_cells_by = "partition",alpha = 0.7,
+1695631809996:show_trajectory_graph = T, # We will explore this later
+1695631809999:label_cell_groups = F, # This is to hide labels on the map
+1695631810002:cell_size = 0.1) +
+1695631810005:scale_color_brewer(palette = "Set1")
+1695631810370:# Label principal Points
+1695631810373:ppoints_plots <- plot_cells(cds = cds,
+1695631810377:label_branch_points = T,
+1695631810380:label_principal_points = T,
+1695631810384:color_cells_by = "partition",alpha = 0.7,
+1695631810388:show_trajectory_graph = T, # We will explore this later
+1695631810392:label_cell_groups = F, # This is to hide labels on the map
+1695631810396:cell_size = 0.1) +
+1695631810400:scale_color_brewer(palette = "Set1")
+1695631810712:# Set show_trajectory_graph as true
+1695631810716:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695631810720:color_cells_by = "Cell.type",alpha = 0.7,
+1695631810723:label_principal_points = F,
+1695631810726:show_trajectory_graph = T, # We will explore this later
+1695631810729:label_cell_groups = T, graph_label_size = 0.1,
+1695631810732:cell_size = 0.5) +
+1695631810734:scale_color_brewer(palette = "Set3")
+1695631811212:# Plot all together
+1695631811215:ggarrange(trajectory_plots, ppoints_plots, lieden_Cluster, trajectory_cellType_plots,
+1695631811218:ncol = 2, nrow = 2, labels = c("A. Trajectory Graph", "B. Principal Points",
+1695631811221:"C. Lieden Clusters", "D. Cell Types with Trajectory Graph"))
+1695632215047:# The following command launches the shinyApp
+1695632215052:cds_shiny <- order_cells(cds = cds)
+1695632243772:cds_shiny
+1695632253676:# The following command launches the shinyApp
+1695632253682:cds_shiny <- order_cells(cds = cds, reduction_method = "UMAP")
+1695632286240:knitr::opts_chunk$set(echo = TRUE)
+1695632286266:suppressPackageStartupMessages(library(SeuratDisk))
+1695632286271:suppressPackageStartupMessages(library(Seurat))
+1695632286276:suppressPackageStartupMessages(library(monocle3))
+1695632286281:suppressPackageStartupMessages(library(tidyverse))
+1695632286286:suppressPackageStartupMessages(library(ggplot2)) # For plotting
+1695632286290:suppressPackageStartupMessages(library(DT)) # For dynamic tables
+1695632286293:suppressPackageStartupMessages(library(ggpubr)) # For additional plotting tools
+1695632286301:# Parent directories
+1695632286305:inPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/input_data"
+1695632286310:outPath = "/home/esr/HandsOn5_A_Monocle3_Trajectory_Analysis/output_data"
+1695632286315:# We will also create a few other empty directories in the output folder
+1695632286326:imgPath = paste(outPath, "images", sep = "/")
+1695632286331:tabPath = paste(outPath, "tables", sep = "/")
+1695632286344:rdsPath = paste(outPath, "rObjects", sep = "/")
+1695632286354:# Load the Seurat H5 using the Seurat function
+1695632286360:sob = LoadH5Seurat(file = paste(inPath, "setty_seurat_azimuth-classif.h5seurat", sep = "/"),
+1695632286364:verbose = F) # This suppresses all verbose messages
+1695632312190:# Checking Data
+1695632312193:DimPlot(sob, group.by = "predicted.celltype.l1", reduction = "tsne") +
+1695632312196:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695632312199:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+1695632312618:# Subset the dataset for HSPCs
+1695632312622:sob.sub = subset(sob, subset = predicted.celltype.l1 == "HSPC")
+1695632313826:# Print to console
+1695632313829:print(sob.sub)
+1695632313905:# Plotting the number of each cell type
+1695632313909:sob.sub@meta.data %>%
+1695632313912:group_by(predicted.celltype.l2) %>%
+1695632313916:summarise(count = n()) %>%
+1695632313919:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695632313922:geom_bar(stat="identity") + theme_minimal() +
+1695632313926:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695632313929:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695632314624:# Subset the dataset based on specific cell types
+1695632314628:sob.sub.1 = subset(sob.sub, subset = predicted.celltype.l2 %in% c("CLP", "Early Eryth", "EMP",
+1695632314631:"GMP", "HSC", "LMPP"))
+1695632315741:# Generate a bar plot of the selected cell types
+1695632315745:bar_p = sob.sub.1@meta.data %>%
+1695632315748:group_by(predicted.celltype.l2) %>%
+1695632315750:summarise(count = n()) %>%
+1695632315753:ggplot(aes(x=predicted.celltype.l2, y=count, fill=predicted.celltype.l2)) +
+1695632315756:geom_bar(stat="identity") + theme_minimal() + scale_fill_brewer(palette = "Set1") +
+1695632315759:theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+1695632315761:geom_hline(yintercept = 100, linetype = "dashed", color = "blue")
+1695632315947:# tSNE plot of the subsetted cells
+1695632315950:tsne_sub = DimPlot(sob.sub.1, group.by = "predicted.celltype.l2", reduction = "tsne") +
+1695632315953:ggtitle(label = "Bone Marrow Cells", subtitle = "Annotated by Azimuth") +
+1695632315956:xlab("tSNE 1") + ylab("tSNE 2") + scale_color_brewer(palette = "Set1")
+1695632316037:# Combine and display the tSNE and bar plots
+1695632316041:ggarrange(tsne_sub, bar_p)
+1695632316984:# Extracting the Raw counts
+1695632316988:rawCounts = sob.sub.1@assays$RNA@counts
+1695632316996:# Displaying a subset of the data for inspection
+1695632317000:datatable(as.data.frame(rawCounts[c(1:20),c(1:20)]),
+1695632317004:options = list(scrollX = TRUE,
+1695632317008:scroller = TRUE))
+1695632317079:# Extracting the cell metadata
+1695632317083:cellMetaData = sob.sub.1@meta.data
+1695632317097:# Appending descriptive names for the cell types
+1695632317101:cellMetaData[cellMetaData$predicted.celltype.l2 == "HSC", "Cell.type"] = "Hematopoietic Stem Cells (HSCs)"
+1695632317127:cellMetaData[cellMetaData$predicted.celltype.l2 == "CLP", "Cell.type"] = "Common Lymphoid Progenitor (CLPs)"
+1695632317144:cellMetaData[cellMetaData$predicted.celltype.l2 == "Early Eryth", "Cell.type"] = "Primitive Erythrocytes (PEs)"
+1695632317160:cellMetaData[cellMetaData$predicted.celltype.l2 == "EMP", "Cell.type"] = "Erythro-Myeloid Progenitors (EMPs)"
+1695632317174:cellMetaData[cellMetaData$predicted.celltype.l2 == "GMP", "Cell.type"] = "Granulocyte-Monocyte Progenitor (GMPs)"
+1695632317192:cellMetaData[cellMetaData$predicted.celltype.l2 == "LMPP", "Cell.type"] = "Lympho-Myeloid Primed Progenitor Cell (LMPPs)"
+1695632317210:# Displaying a subset of the metadata for inspection
+1695632317214:datatable(cellMetaData, options = list(scrollX = TRUE,
+1695632317217:scroller = TRUE))
+1695632317361:# Extracting the gene-level metadata
+1695632317365:geneMetaData = sob.sub.1@assays$RNA@meta.features
+1695632317371:# Displaying a subset of the gene metadata for inspection
+1695632317374:datatable(geneMetaData, options = list(scrollX = TRUE,
+1695632317377:scroller = TRUE))
+1695632317793:# Assigning row names to the gene_short_name column
+1695632317797:geneMetaData$gene_short_name = rownames(geneMetaData)
+1695632317806:# Displaying the updated gene metadata for verification
+1695632317810:datatable(geneMetaData, options = list(scrollX = TRUE,
+1695632317814:scroller = TRUE))
+1695632318257:# Generating the CDS using Monocle3's built-in function
+1695632318260:cds = new_cell_data_set(expression_data = rawCounts,
+1695632318265:cell_metadata = cellMetaData,
+1695632318268:gene_metadata = geneMetaData)
+1695632318779:# Displaying the newly created CDS
+1695632318784:cds
+1695632318937:# Monocle 3 allows do this pre-processing in 1 go
+1695632318943:cds = preprocess_cds(cds = cds,
+1695632318948:method = "PCA",
+1695632318952:num_dim = 50,
+1695632318955:norm_method = "log",
+1695632318958:pseudo_count = 1,
+1695632318962:scaling = T,
+1695632318965:verbose = F)
+1695632343937:# Monocle 3 allows do this to do pre-processing in 1 go
+1695632343941:cds = reduce_dimension(cds = cds,
+1695632343944:max_components = 3,
+1695632343946:reduction_method = "UMAP",
+1695632343949:preprocess_method = "PCA",
+1695632343951:umap.min_dist = 0.2,
+1695632343954:umap.n_neighbors = 15)
+1695632351263:# We have other options as well
+1695632351266:cds_tsne = reduce_dimension(cds = cds,
+1695632351269:max_components = 3,
+1695632351271:reduction_method = "tSNE",
+1695632351274:preprocess_method = "PCA",
+1695632351277:umap.min_dist = 0.2,
+1695632351279:umap.n_neighbors = 15)
+1695632367690:# We have other options as well
+1695632367693:cds_PCA = reduce_dimension(cds = cds,
+1695632367696:max_components = 3,
+1695632367699:reduction_method = "PCA",
+1695632367701:preprocess_method = "PCA",
+1695632367704:umap.min_dist = 0.2,
+1695632367707:umap.n_neighbors = 15)
+1695632367868:# 2D plot PCA
+1695632367871:cds_PCA_plot = plot_cells(cds = cds_PCA, reduction_method = "PCA",
+1695632367874:color_cells_by = "Cell.type",alpha = 0.7,
+1695632367877:show_trajectory_graph = F, # We will explore this later
+1695632367879:label_cell_groups = F, # This is to hide labels on the map
+1695632367882:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695632367885:scale_color_brewer(palette = "Set1")
+1695632368127:# 2D plot tSNE
+1695632368130:cds_tSNE_plot = plot_cells(cds = cds_tsne, reduction_method = "tSNE",
+1695632368133:color_cells_by = "Cell.type",alpha = 0.7,
+1695632368136:show_trajectory_graph = F, # We will explore this later
+1695632368139:label_cell_groups = F, # This is to hide labels on the map
+1695632368143:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695632368146:scale_color_brewer(palette = "Set1")
+1695632368378:# Plot
+1695632368381:ggarrange(cds_tSNE_plot, cds_PCA_plot)
+1695632369277:# 2D plot
+1695632369282:plot_cells(cds = cds,
+1695632369286:color_cells_by = "Cell.type",alpha = 0.7,
+1695632369290:show_trajectory_graph = F, # We will explore this later
+1695632369293:label_cell_groups = F, # This is to hide labels on the map
+1695632369296:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695632369299:scale_color_brewer(palette = "Set1")
+1695632369908:# 3d Plot
+1695632369915:plot_cells_3d(cds = cds,
+1695632369920:color_cells_by = "Cell.type",
+1695632369923:show_trajectory_graph = F, # We will explore this later
+1695632369928:cell_size = 10)
+1695632370497:# Monocle 3 allows do this to do pre-processing in 1 go
+1695632370500:cds = reduce_dimension(cds = cds,
+1695632370503:max_components = 2,
+1695632370506:reduction_method = "UMAP",
+1695632370509:preprocess_method = "PCA",
+1695632370512:umap.min_dist = 0.2,
+1695632370514:umap.n_neighbors = 15)
+1695632378089:# 2D plot
+1695632378091:plot_cells(cds = cds,
+1695632378094:color_cells_by = "Cell.type",alpha = 0.7,
+1695632378096:show_trajectory_graph = F, # We will explore this later
+1695632378100:label_cell_groups = F, # This is to hide labels on the map
+1695632378104:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695632378109:scale_color_brewer(palette = "Set1")
+1695632378923:cds <- cluster_cells(cds = cds,
+1695632378927:reduction_method = "UMAP",
+1695632378931:cluster_method = "leiden",
+1695632378934:resolution = 0.01,
+1695632378938:k = 25)
+1695632382272:cds_louvain <- cluster_cells(cds = cds,
+1695632382275:k = 25,
+1695632382278:resolution = 0.01,
+1695632382280:reduction_method = "UMAP",
+1695632382283:cluster_method = "louvain")
+1695632385457:# Lieden Clusters
+1695632385460:lieden_Cluster <- plot_cells(cds = cds,
+1695632385463:color_cells_by = "cluster",alpha = 0.7,
+1695632385466:show_trajectory_graph = F, # We will explore this later
+1695632385468:label_cell_groups = F, # This is to hide labels on the map
+1695632385471:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695632385474:scale_color_brewer(palette = "Set3")
+1695632385675:# louvain Clusters
+1695632385677:louvain_Cluster <- plot_cells(cds = cds_louvain,
+1695632385680:color_cells_by = "cluster",alpha = 0.7,
+1695632385682:show_trajectory_graph = F, # We will explore this later
+1695632385685:label_cell_groups = F, # This is to hide labels on the map
+1695632385688:cell_size = 1.4) + theme(legend.position = "bottom") +
+1695632385690:scale_color_brewer(palette = "Set1")
+1695632385893:# Cell Types
+1695632385896:cell_type_plots <- plot_cells(cds = cds,
+1695632385899:color_cells_by = "Cell.type",alpha = 0.7,
+1695632385902:show_trajectory_graph = F, # We will explore this later
+1695632385904:label_cell_groups = F, # This is to hide labels on the map
+1695632385907:cell_size = 1.4) + theme(legend.position = "right") +
+1695632385910:scale_color_brewer(palette = "Set1")
+1695632386109:# Plot lieden_Cluster
+1695632386112:lieden_Cluster + cell_type_plots
+1695632386764:# Plot louvain_Cluster
+1695632386772:louvain_Cluster + cell_type_plots
+1695632387901:# Set colour label as partition
+1695632387904:partition_plots <- plot_cells(cds = cds,
+1695632387907:color_cells_by = "partition",alpha = 0.7,
+1695632387910:show_trajectory_graph = F, # We will explore this later
+1695632387912:label_cell_groups = F, # This is to hide labels on the map
+1695632387915:cell_size = 1.4) + theme(legend.position = "right") +
+1695632387917:scale_color_brewer(palette = "Set1")
+1695632388122:# Plot Partitions
+1695632388124:partition_plots
+1695632388494:cds <- learn_graph(cds = cds,
+1695632388497:use_partition = F, # We will see it later
+1695632388499:close_loop = F)  # We will see it later
+1695632396397:# Set show_trajectory_graph as true
+1695632396400:trajectory_plots <- plot_cells(cds = cds,
+1695632396403:color_cells_by = "partition",alpha = 0.7,
+1695632396405:show_trajectory_graph = T, # We will explore this later
+1695632396408:label_cell_groups = F, # This is to hide labels on the map
+1695632396410:cell_size = 0.1) +
+1695632396413:scale_color_brewer(palette = "Set1")
+1695632396770:# Label principal Points
+1695632396773:ppoints_plots <- plot_cells(cds = cds,
+1695632396775:label_branch_points = T,
+1695632396779:label_principal_points = T,
+1695632396781:color_cells_by = "partition",alpha = 0.7,
+1695632396785:show_trajectory_graph = T, # We will explore this later
+1695632396788:label_cell_groups = F, # This is to hide labels on the map
+1695632396791:cell_size = 0.1) +
+1695632396793:scale_color_brewer(palette = "Set1")
+1695632397071:# Set show_trajectory_graph as true
+1695632397074:trajectory_cellType_plots <- plot_cells(cds = cds,
+1695632397076:color_cells_by = "Cell.type",alpha = 0.7,
+1695632397079:label_principal_points = F,
+1695632397082:show_trajectory_graph = T, # We will explore this later
+1695632397085:label_cell_groups = T, graph_label_size = 0.1,
+1695632397089:cell_size = 0.5) +
+1695632397091:scale_color_brewer(palette = "Set3")
+1695632397488:# Plot all together
+1695632397491:ggarrange(trajectory_plots, ppoints_plots, lieden_Cluster, trajectory_cellType_plots,
+1695632397495:ncol = 2, nrow = 2, labels = c("A. Trajectory Graph", "B. Principal Points",
+1695632397497:"C. Lieden Clusters", "D. Cell Types with Trajectory Graph"))
+1695632476292:# The following command launches the shinyApp
+1695632476297:cds_shiny <- order_cells(cds = cds, reduction_method = "UMAP")
+1695632760200:# Set show_trajectory_graph as true
+1695632760207:marked_start_cells <- plot_cells(cds = cds,
+1695632760211:color_cells_by = "grey",alpha = 0.7,
+1695632760214:label_principal_points = F,
+1695632760217:show_trajectory_graph = T, # We will explore this later
+1695632760220:label_cell_groups = T, graph_label_size = 0.1,
+1695632760223:cell_size = 0.5) +
+1695632760226:scale_color_brewer(palette = "Set3")
+1695632769270:# Set show_trajectory_graph as true
+1695632769273:marked_start_cells <- plot_cells(cds = cds,
+1695632769276:color_cells_by = "partition",alpha = 0.7,
+1695632769279:label_principal_points = F,
+1695632769283:show_trajectory_graph = T, # We will explore this later
+1695632769286:label_cell_groups = T, graph_label_size = 0.1,
+1695632769289:cell_size = 0.5) +
+1695632769292:scale_color_brewer(palette = "Set3")
+1695632775937:# Set show_trajectory_graph as true
+1695632775942:marked_start_cells <- plot_cells(cds = cds,
+1695632775945:color_cells_by = "partition",alpha = 0.7,
+1695632775948:label_principal_points = F,
+1695632775952:show_trajectory_graph = T, # We will explore this later
+1695632775956:label_cell_groups = T, graph_label_size = 0.1,
+1695632775959:cell_size = 0.5) +
+1695632775963:scale_color_brewer(palette = "grey")
+1695632778902:marked_start_cells
+1695632791445:# Set show_trajectory_graph as true
+1695632791451:marked_start_cells <- plot_cells(cds = cds,
+1695632791455:color_cells_by = "partition",alpha = 0.7,
+1695632791458:label_principal_points = F,
+1695632791461:show_trajectory_graph = T, # We will explore this later
+1695632791464:label_cell_groups = T, graph_label_size = 0.1,
+1695632791466:cell_size = 0.5) +
+1695632791469:scale_color_manual("grey")
+1695632794775:marked_start_cells
+1695632803248:# Set show_trajectory_graph as true
+1695632803254:marked_start_cells <- plot_cells(cds = cds,
+1695632803259:color_cells_by = "partition",alpha = 0.7,
+1695632803262:label_principal_points = F,
+1695632803265:show_trajectory_graph = T, # We will explore this later
+1695632803268:label_cell_groups = T, graph_label_size = 0.1,
+1695632803271:cell_size = 0.5)
+1695632806332:marked_start_cells
+1695632815759:# Set show_trajectory_graph as true
+1695632815765:marked_start_cells <- plot_cells(cds = cds,
+1695632815770:color_cells_by = "partition",alpha = 0.7,
+1695632815773:label_principal_points = F,
+1695632815777:show_trajectory_graph = T, # We will explore this later
+1695632815781:label_cell_groups = T, graph_label_size = 0.1,
+1695632815784:cell_size = 0.5) + geom_point("grey")
+1695632820168:marked_start_cells
+1695632841092:# Set show_trajectory_graph as true
+1695632841098:marked_start_cells <- plot_cells(cds = cds,
+1695632841104:color_cells_by = "partition",alpha = 0.7,
+1695632841107:label_principal_points = F,
+1695632841110:show_trajectory_graph = T, # We will explore this later
+1695632841113:label_cell_groups = T, graph_label_size = 0.1,
+1695632841117:cell_size = 0.5) + scale_color_discrete("grey")
+1695632844026:marked_start_cells
+1695632851583:# Set show_trajectory_graph as true
+1695632851589:marked_start_cells <- plot_cells(cds = cds,
+1695632851592:color_cells_by = "partition",alpha = 0.7,
+1695632851596:label_principal_points = F,
+1695632851599:show_trajectory_graph = T, # We will explore this later
+1695632851603:label_cell_groups = T, graph_label_size = 0.1,
+1695632851606:cell_size = 0.5) + scale_color_manual("grey")
+1695632854458:marked_start_cells
+1695632862907:# Set show_trajectory_graph as true
+1695632862912:marked_start_cells <- plot_cells(cds = cds,
+1695632862915:color_cells_by = "partition",alpha = 0.7,
+1695632862918:label_principal_points = F,
+1695632862922:show_trajectory_graph = T, # We will explore this later
+1695632862925:label_cell_groups = T, graph_label_size = 0.1,
+1695632862929:cell_size = 0.5) + scale_color_brewer("grey")
+1695632865482:marked_start_cells
+1695632976697:dim(cellMetaData)
+1695632981150:cds
+1695633086352:# Extract the Start cells
+1695633086356:markers <- ifelse(cellMetaData$Cell.type == "Hematopoietic Stem Cells (HSCs)", "#f48b53", "grey")
+1695633088609:markers
+1695633102538:# Set show_trajectory_graph as true
+1695633102543:marked_start_cells <- plot_cells(cds = cds,
+1695633102546:color_cells_by = "partition",alpha = 0.7,
+1695633102548:label_principal_points = F,
+1695633102551:show_trajectory_graph = T, # We will explore this later
+1695633102553:label_cell_groups = T, graph_label_size = 0.1,
+1695633102556:cell_size = 0.5) + geom_point(aes(color = markers))
+1695633105614:marked_start_cells
+1695633120481:# Set show_trajectory_graph as true
+1695633120487:marked_start_cells <- plot_cells(cds = cds,
+1695633120490:color_cells_by = "partition",alpha = 0.7,
+1695633120493:label_principal_points = F,
+1695633120496:show_trajectory_graph = T, # We will explore this later
+1695633120499:label_cell_groups = T, graph_label_size = 0.1,
+1695633120502:cell_size = 0.5) + geom_point(aes(color = markers)) +  scale_color_identity()
+1695633123127:marked_start_cells
+1695633195059:+  scale_color_identity() + theme(legend.position = "bottom")
+1695633215402:# Set show_trajectory_graph as true
+1695633215407:marked_start_cells <- plot_cells(cds = cds,
+1695633226010:)
+1695633239445:# Set show_trajectory_graph as true
+1695633239451:marked_start_cells <- plot_cells(cds = cds,
+1695633239454:color_cells_by = "partition",alpha = 0.7,
+1695633239456:label_principal_points = F,
+1695633239459:show_trajectory_graph = T, # We will explore this later
+1695633239461:label_cell_groups = T, graph_label_size = 0.1,
+1695633239464:cell_size = 0.5) +
+1695633239467:geom_point(aes(color = markers)) +
+1695633239469:scale_color_identity() +
+1695633239472:theme(legend.position = "bottom")
+1695633242053:marked_start_cells
+1695633361422:# Set show_trajectory_graph as true
+1695633361427:marked_start_cells <- plot_cells(cds = cds,
+1695633361429:color_cells_by = "partition",alpha = 0.7,
+1695633361432:label_principal_points = F,
+1695633361435:show_trajectory_graph = T, # We will explore this later
+1695633361437:label_cell_groups = T, graph_label_size = 0.1,
+1695633361440:cell_size = 0.5) +
+1695633361443:geom_point(aes(color = markers)) +
+1695633361446:scale_color_manual(values = c("Hematopoietic Stem Cells (HSCs)" = "#f48b53", "Lineage Comitted Cells" = "grey"),
+1695633361449:labels = c("Marked" = "Hematopoietic Stem Cells (HSCs)",
+1695633361498:"Unmarked" = "Lineage Committed Cells"))
+1695633364377:# Extract the Start cells #f48b53
+1695633364381:markers <- ifelse(cellMetaData$Cell.type == "Hematopoietic Stem Cells (HSCs)", "Marked", "Unmarked")
+1695633364848:# Set show_trajectory_graph as true
+1695633364851:marked_start_cells <- plot_cells(cds = cds,
+1695633364855:color_cells_by = "partition",alpha = 0.7,
+1695633364858:label_principal_points = F,
+1695633364860:show_trajectory_graph = T, # We will explore this later
+1695633364863:label_cell_groups = T, graph_label_size = 0.1,
+1695633364866:cell_size = 0.5) +
+1695633364869:geom_point(aes(color = markers)) +
+1695633364872:scale_color_manual(values = c("Hematopoietic Stem Cells (HSCs)" = "#f48b53", "Lineage Comitted Cells" = "grey"),
+1695633364874:labels = c("Marked" = "Hematopoietic Stem Cells (HSCs)",
+1695633364877:"Unmarked" = "Lineage Committed Cells"))
+1695633368051:marked_start_cells
+1695633403839:# Set show_trajectory_graph as true
+1695633403845:marked_start_cells <- plot_cells(cds = cds,
+1695633403848:color_cells_by = "partition",alpha = 0.7,
+1695633403850:label_principal_points = F,
+1695633403853:show_trajectory_graph = T, # We will explore this later
+1695633403856:label_cell_groups = T, graph_label_size = 0.1,
+1695633403860:cell_size = 0.5) +
+1695633403863:geom_point(aes(color = markers)) +
+1695633403865:scale_color_manual(values = c("Marked" = "#f48b53", "Unmarked" = "grey"),
+1695633403868:labels = c("Marked" = "Hematopoietic Stem Cells (HSCs)",
+1695633403870:"Unmarked" = "Lineage Committed Cells"))
+1695633406908:marked_start_cells
+1695633457294:# Set show_trajectory_graph as true
+1695633457300:marked_start_cells <- plot_cells(cds = cds,
+1695633457303:color_cells_by = "partition",alpha = 0.7,
+1695633457307:label_principal_points = F,
+1695633457310:show_trajectory_graph = T, # We will explore this later
+1695633457313:label_cell_groups = T, graph_label_size = 0.1,
+1695633457316:cell_size = 0.5) +
+1695633457319:geom_point(aes(color = markers)) +
+1695633457322:scale_color_manual(name = "Cell Type", values = c("Marked" = "#f48b53", "Unmarked" = "grey"),
+1695633457324:labels = c("Marked" = "Hematopoietic Stem Cells (HSCs)",
+1695633457327:"Unmarked" = "Lineage Committed Cells")) +
+1695633457330:guides(color=guide_legend(title="Cell Type")) +
+1695633457332:labs(color="Cell Type")
+1695633460468:marked_start_cells
+1695633485599:# Set show_trajectory_graph as true
+1695633485603:marked_start_cells <- plot_cells(cds = cds,
+1695633485606:color_cells_by = "partition",alpha = 0.7,
+1695633485608:label_principal_points = F,
+1695633485611:show_trajectory_graph = T, # We will explore this later
+1695633485613:label_cell_groups = T, graph_label_size = 0.1,
+1695633485617:cell_size = 0.5) +
+1695633485619:geom_point(aes(color = markers)) +
+1695633485622:scale_color_identity() +
+1695633485625:theme(legend.position = "bottom")
+1695633488058:marked_start_cells
+1695633496584:# Extract the Start cells
+1695633496588:markers <- ifelse(cellMetaData$Cell.type == "Hematopoietic Stem Cells (HSCs)", "#f48b53", "grey")
+1695633496937:# Set show_trajectory_graph as true
+1695633496940:marked_start_cells <- plot_cells(cds = cds,
+1695633496943:color_cells_by = "partition",alpha = 0.7,
+1695633496947:label_principal_points = F,
+1695633496949:show_trajectory_graph = T, # We will explore this later
+1695633496952:label_cell_groups = T, graph_label_size = 0.1,
+1695633496954:cell_size = 0.5) +
+1695633496957:geom_point(aes(color = markers)) +
+1695633496960:scale_color_identity() +
+1695633496962:theme(legend.position = "bottom")
+1695633500350:marked_start_cells
+1695633636793:# Set show_trajectory_graph as true
+1695633636799:marked_start_cells_pp <- plot_cells(cds = cds,
+1695633636803:color_cells_by = "partition",alpha = 0.7,
+1695633636806:label_principal_points = T,
+1695633636809:show_trajectory_graph = T, # We will explore this later
+1695633636811:label_cell_groups = T, graph_label_size = 0.1,
+1695633636814:cell_size = 0.5) +
+1695633636817:geom_point(aes(color = markers)) +
+1695633636820:scale_color_identity() +
+1695633636822:theme(legend.position = "bottom")
+1695633640272:marked_start_cells_pp
+1695633645785:# Set show_trajectory_graph as true
+1695633645791:marked_start_cells_pp <- plot_cells(cds = cds,
+1695633645794:color_cells_by = "partition",alpha = 0.7,
+1695633645796:label_principal_points = T,
+1695633645799:show_trajectory_graph = T, # We will explore this later
+1695633645802:label_cell_groups = T, graph_label_size = 0.1,
+1695633645805:cell_size = 0.5) +
+1695633645808:geom_point(aes(color = markers)) +
+1695633645810:scale_color_identity() +
+1695633645813:theme(legend.position = "bottom")
+1695633648776:marked_start_cells_pp
+1695633655050:# Set show_trajectory_graph as true
+1695633655053:marked_start_cells_pp <- plot_cells(cds = cds,
+1695633655056:color_cells_by = "partition",alpha = 0.7,
+1695633655060:label_principal_points = T,
+1695633655062:show_trajectory_graph = T, # We will explore this later
+1695633655065:label_cell_groups = T, graph_label_size = 0.1,
+1695633655067:cell_size = 0.5)
+1695633658688:marked_start_cells_pp
+1695633698182:# Set show_trajectory_graph as true
+1695633698188:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633698191:label_branch_points = T,
+1695633698194:label_principal_points = T,
+1695633698196:color_cells_by = "partition",alpha = 0.7,
+1695633698199:show_trajectory_graph = T, # We will explore this later
+1695633698201:label_cell_groups = F, # This is to hide labels on the map
+1695633698204:cell_size = 0.1) +
+1695633698207:scale_color_brewer(palette = "Set1")
+1695633700499:marked_ppoints_plots
+1695633710565:# Set show_trajectory_graph as true
+1695633710575:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633710580:label_branch_points = T,
+1695633710583:label_principal_points = T,
+1695633710586:color_cells_by = "partition",alpha = 0.7,
+1695633710588:show_trajectory_graph = T, # We will explore this later
+1695633710591:label_cell_groups = F, # This is to hide labels on the map
+1695633710594:cell_size = 0.5) +
+1695633710596:scale_color_brewer(palette = "Set1")
+1695633718848:# Set show_trajectory_graph as true
+1695633718852:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633718856:label_branch_points = T,
+1695633718859:label_principal_points = T,
+1695633718861:color_cells_by = "partition",alpha = 0.7,
+1695633718864:show_trajectory_graph = T, # We will explore this later
+1695633718867:label_cell_groups = F, # This is to hide labels on the map
+1695633718869:cell_size = 0.5) +
+1695633718872:scale_color_brewer(palette = "Set1")
+1695633719143:marked_ppoints_plots
+1695633743941:# Set show_trajectory_graph as true
+1695633743947:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633743951:label_branch_points = T,
+1695633743955:label_principal_points = T,
+1695633743959:color_cells_by = "partition",alpha = 0.7,
+1695633743963:show_trajectory_graph = T, # We will explore this later
+1695633743966:label_cell_groups = F, # This is to hide labels on the map
+1695633743969:cell_size = 0.5) +  geom_point(aes(color = markers)) +
+1695633743971:scale_color_identity() +
+1695633743975:theme(legend.position = "bottom")
+1695633744831:marked_ppoints_plots
+1695633768709:# Set show_trajectory_graph as true
+1695633768715:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633768718:label_branch_points = T,
+1695633768720:label_principal_points = T,
+1695633768723:color_cells_by = "partition",alpha = 0.7,
+1695633768725:show_trajectory_graph = T, # We will explore this later
+1695633768728:label_cell_groups = F, # This is to hide labels on the map
+1695633768731:cell_size = 0.5) +  geom_point(aes(color = markers, alpha = 0.2)) +
+1695633768733:scale_color_identity() +
+1695633768736:theme(legend.position = "bottom")
+1695633769510:marked_ppoints_plots
+1695633784332:# Set show_trajectory_graph as true
+1695633784337:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633784340:cell_stroke = 0.1,
+1695633784343:label_branch_points = T,
+1695633784345:label_principal_points = T,
+1695633784348:color_cells_by = "partition",alpha = 0.7,
+1695633784351:show_trajectory_graph = T, # We will explore this later
+1695633784354:label_cell_groups = F, # This is to hide labels on the map
+1695633784356:cell_size = 0.5) +  geom_point(aes(color = markers, alpha = 0.1)) +
+1695633784359:scale_color_identity() +
+1695633784362:theme(legend.position = "bottom")
+1695633785122:marked_ppoints_plots
+1695633799819:# Set show_trajectory_graph as true
+1695633799825:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633799828:cell_stroke = 0.5,
+1695633799835:label_branch_points = T,
+1695633799839:label_principal_points = T,
+1695633799841:color_cells_by = "partition",alpha = 0.7,
+1695633799845:show_trajectory_graph = T, # We will explore this later
+1695633799848:label_cell_groups = F, # This is to hide labels on the map
+1695633799850:cell_size = 0.5) +  geom_point(aes(color = markers, alpha = 0.1)) +
+1695633799853:scale_color_identity() +
+1695633799855:theme(legend.position = "bottom")
+1695633800667:marked_ppoints_plots
+1695633806458:# Set show_trajectory_graph as true
+1695633806466:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633806470:cell_stroke = 0.5,
+1695633806476:label_branch_points = T,
+1695633806479:label_principal_points = T,
+1695633806482:color_cells_by = "partition",alpha = 0.7,
+1695633806484:show_trajectory_graph = T, # We will explore this later
+1695633806487:label_cell_groups = F, # This is to hide labels on the map
+1695633806490:cell_size = 0.2) +  geom_point(aes(color = markers, alpha = 0.1)) +
+1695633806492:scale_color_identity() +
+1695633806495:theme(legend.position = "bottom")
+1695633809055:marked_ppoints_plots
+1695633815135:# Set show_trajectory_graph as true
+1695633815139:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633815142:cell_stroke = 0.1,
+1695633815148:label_branch_points = T,
+1695633815151:label_principal_points = T,
+1695633815153:color_cells_by = "partition",alpha = 0.7,
+1695633815156:show_trajectory_graph = T, # We will explore this later
+1695633815159:label_cell_groups = F, # This is to hide labels on the map
+1695633815162:cell_size = 0.2) +  geom_point(aes(color = markers, alpha = 0.1)) +
+1695633815165:scale_color_identity() +
+1695633815168:theme(legend.position = "bottom")
+1695633816051:marked_ppoints_plots
+1695633824622:marked_ppoints_plots
+1695633849708:# Set show_trajectory_graph as true
+1695633849712:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633849715:cell_stroke = 0,
+1695633849717:label_branch_points = T,
+1695633849720:label_principal_points = T,
+1695633849723:color_cells_by = "partition",alpha = 0.7,
+1695633849726:show_trajectory_graph = T, # We will explore this later
+1695633849729:label_cell_groups = F, # This is to hide labels on the map
+1695633849731:cell_size = 0.2) +  geom_point(aes(color = markers, alpha = 0.1)) +
+1695633849734:scale_color_identity() +
+1695633849737:theme(legend.position = "bottom")
+1695633851244:marked_ppoints_plots
+1695633855251:marked_ppoints_plots
+1695633860317:# Set show_trajectory_graph as true
+1695633860322:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633860325:label_branch_points = T,
+1695633860327:label_principal_points = T,
+1695633860330:color_cells_by = "partition",alpha = 0.7,
+1695633860333:show_trajectory_graph = T, # We will explore this later
+1695633860336:label_cell_groups = F, # This is to hide labels on the map
+1695633860338:cell_size = 0.2) +  geom_point(aes(color = markers, alpha = 0.1)) +
+1695633860341:scale_color_identity() +
+1695633860344:theme(legend.position = "bottom")
+1695633863312:marked_ppoints_plots
+1695633865980:marked_ppoints_plots
+1695633882262:# Extract the Start cells
+1695633882269:markers <- ifelse(cellMetaData$Cell.type == "Hematopoietic Stem Cells (HSCs)", "#f48b53", "lightgrey")
+1695633882907:# Set show_trajectory_graph as true
+1695633882913:marked_start_cells <- plot_cells(cds = cds,
+1695633882916:color_cells_by = "partition",alpha = 0.7,
+1695633882918:label_principal_points = F,
+1695633882921:show_trajectory_graph = T, # We will explore this later
+1695633882924:label_cell_groups = T, graph_label_size = 0.1,
+1695633882927:cell_size = 0.5) +
+1695633882929:geom_point(aes(color = markers)) +
+1695633882932:scale_color_identity() +
+1695633882935:theme(legend.position = "bottom")
+1695633887805:marked_start_cells
+1695633893047:# Set show_trajectory_graph as true
+1695633893052:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633893055:label_branch_points = T,
+1695633893058:label_principal_points = T,
+1695633893061:color_cells_by = "partition",alpha = 0.7,
+1695633893063:show_trajectory_graph = T, # We will explore this later
+1695633893066:label_cell_groups = F, # This is to hide labels on the map
+1695633893069:cell_size = 0.2) +  geom_point(aes(color = markers, alpha = 0.1)) +
+1695633893071:scale_color_identity() +
+1695633893074:theme(legend.position = "bottom")
+1695633893865:marked_ppoints_plots
+1695633900273:marked_ppoints_plots
+1695633992555:# Set show_trajectory_graph as true
+1695633992563:marked_ppoints_plots <- plot_cells(cds = cds,
+1695633992567:label_branch_points = T,
+1695633992570:label_principal_points = T,
+1695633992572:color_cells_by = "partition",alpha = 0.7,
+1695633992575:show_trajectory_graph = T, # We will explore this later
+1695633992578:label_cell_groups = F, # This is to hide labels on the map
+1695633992580:cell_size = 0.2) +  geom_point(aes(color = markers, alpha = 0.1)) +
+1695633992583:scale_color_identity()
+1695633993347:marked_ppoints_plots
+1695633999790:marked_ppoints_plots
+1695634080175:cds <- order_cells(cds, reduction_method = "UMAP",
+1695634080179:root_pr_nodes = c("Y_257", "Y_177"))
+1695634143509:# Set show_trajectory_graph as true
+1695634143518:pseudotime_plot <- plot_cells(cds = cds,
+1695634143526:label_branch_points = T,
+1695634143534:label_principal_points = T,
+1695634143540:color_cells_by = "pseudotime",alpha = 0.7,
+1695634143545:show_trajectory_graph = T, # We will explore this later
+1695634143548:label_cell_groups = F, # This is to hide labels on the map
+1695634143551:cell_size = 0.2)
+1695634143849:pseudotime_plot
+1695634150358:# Set show_trajectory_graph as true
+1695634150363:pseudotime_plot <- plot_cells(cds = cds,
+1695634150366:label_branch_points = T,
+1695634150368:label_principal_points = T,
+1695634150371:color_cells_by = "pseudotime",alpha = 0.7,
+1695634150374:show_trajectory_graph = T, # We will explore this later
+1695634150377:label_cell_groups = F, # This is to hide labels on the map
+1695634150380:cell_size = 1.3)
+1695634153510:pseudotime_plot
+1695634156354:pseudotime_plot
+1695634186173:# Set show_trajectory_graph as true
+1695634186177:pseudotime_plot <- plot_cells(cds = cds,
+1695634186179:label_branch_points = T,
+1695634186182:label_principal_points = F,
+1695634186185:color_cells_by = "pseudotime",alpha = 0.7,
+1695634186188:show_trajectory_graph = T, # We will explore this later
+1695634186191:label_cell_groups = F, # This is to hide labels on the map
+1695634186193:cell_size = 1.3)
+1695634187494:pseudotime_plot
+1695634204626:ggarrange(pseudotime_plot, cell_type_plots)
+1695634449523:# Extract counts for CD34
+1695634449530:cds_cd34 <- cds[rowData(cds)$gene_short_name == "CD34", ]
+1695634452788:cds_cd34
+1695634507385:# Plot _cells
+1695634507389:plot_genes_in_pseudotime(cds_cd34,
+1695634507392:min_expr = 0.5,
+1695634507395:cell_size = 1.2,
+1695634507398:color_cells_by = "Cell.type")
+1695634510782:plot_genes_in_pseudotime(cds_cd34,
+1695634510783:min_expr = 0.5,
+1695634510783:cell_size = 1.2,
+1695634510783:color_cells_by = "Cell.type")
+1695634565234:# Plot _cells
+1695634565242:plot_genes_in_pseudotime(cds_cd34,
+1695634565246:min_expr = 0.5,
+1695634565248:cell_size = 1.2,
+1695634565251:color_cells_by = "Cell.type") +
+1695634565254:scale_color_brewer(palette = "Set1")
+1695634571139:# Plot _cells
+1695634571144:plot_genes_in_pseudotime(cds_cd34,
+1695634571145:min_expr = 0.5,
+1695634571145:cell_size = 1.2,
+1695634571146:color_cells_by = "Cell.type") +
+1695634571146:scale_color_brewer(palette = "Set1")
+1695634637109:# Plot UMAP
+1695634637114:trend_umap <- plot_cells(cds,genes = "CD34")+
+1695634637117:scale_color_brewer(palette = "Set1")
+1695634639738:trend_umap
+1695634647016:# Plot UMAP
+1695634647021:trend_umap <- plot_cells(cds,genes = "CD34")
+1695634650292:trend_umap
+1695634660479:# Plot UMAP
+1695634660484:trend_umap <- plot_cells(cds,genes = "CD34", cell_size = 1.4)
+1695634662912:trend_umap
+1695634774034:# Extract counts for CD34
+1695634774042:cds_mpo <- cds[rowData(cds)$gene_short_name == "MPO", ]
+1695634774847:# Plot trend
+1695634774853:trend <- plot_genes_in_pseudotime(cds_mpo,
+1695634774856:min_expr = 0.5,
+1695634774859:cell_size = 1.2,
+1695634774862:color_cells_by = "Cell.type") +
+1695634774865:scale_color_brewer(palette = "Set1")
+1695634777849:trend
+1695634808896:# Extract counts for CD34
+1695634808900:cds_mpo <- cds[rowData(cds)$gene_short_name == "MPO", ]
+1695634808992:# Plot trend
+1695634809004:trend_mpo <- plot_genes_in_pseudotime(cds_mpo,
+1695634809008:min_expr = 0.5,
+1695634809011:cell_size = 1.2,
+1695634809015:color_cells_by = "Cell.type") +
+1695634809019:scale_color_brewer(palette = "Set1")
+1695634810266:# Plot
+1695634810269:trend_mpo
+1695634815291:# Plot
+1695634815295:trend_mpo
+1695634845821:# Extract counts for CD34
+1695634845827:cds_irf8 <- cds[rowData(cds)$gene_short_name == "IRF8", ]
+1695634846809:# Plot trend
+1695634846813:trend_irf8 <- plot_genes_in_pseudotime(cds_mpo,
+1695634846822:min_expr = 0.5,
+1695634846826:cell_size = 1.2,
+1695634846829:color_cells_by = "Cell.type") +
+1695634846831:scale_color_brewer(palette = "Set1")
+1695634850721:# Plot
+1695634850725:trend_irf8
+1695634858018:# Plot trend
+1695634858022:trend_irf8 <- plot_genes_in_pseudotime(trend_irf8,
+1695634858025:min_expr = 0.5,
+1695634858027:cell_size = 1.2,
+1695634858030:color_cells_by = "Cell.type") +
+1695634858033:scale_color_brewer(palette = "Set1")
+1695634864540:# Extract counts for CD34
+1695634864544:cds_irf8 <- cds[rowData(cds)$gene_short_name == "IRF8", ]
+1695634867224:cds_irf8
+1695634872878:# Plot trend
+1695634872883:trend_irf8 <- plot_genes_in_pseudotime(trend_irf8,
+1695634872886:min_expr = 0.5,
+1695634872889:cell_size = 1.2,
+1695634872891:color_cells_by = "Cell.type") +
+1695634872894:scale_color_brewer(palette = "Set1")
+1695634880811:# Plot trend
+1695634880817:trend_irf8 <- plot_genes_in_pseudotime(cds_irf8,
+1695634880821:min_expr = 0.5,
+1695634880825:cell_size = 1.2,
+1695634880828:color_cells_by = "Cell.type") +
+1695634880831:scale_color_brewer(palette = "Set1")
+1695634882369:# Plot
+1695634882375:trend_irf8
