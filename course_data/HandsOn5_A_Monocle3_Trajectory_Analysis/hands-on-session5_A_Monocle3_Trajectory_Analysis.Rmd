@@ -569,7 +569,7 @@ The pseudotime visualizations provide insights into cell differentiation over ti
 
 Monocle3 offers trend plots to visualize the expression profiles of genes along the pseudotime trajectory. 
 
-### Marker of HSCs: `CD34`
+### Marker: `CD34`
 
 From the ensuing plot, it becomes evident that the expression of CD34 decreases as the cells progress towards lineage commitment.
 
@@ -588,7 +588,7 @@ trend_cd34 <- plot_genes_in_pseudotime(cds_cd34,
 trend_cd34
 ```
 
-### Marker of HSCs: `MPO`
+### Marker: `MPO`
 
 ```{r, "Plotting the MPO", echo=T, eval=T, message=F, warnings=F, fig.width=10, fig.height=7}
 # Extract expression data for MPO
@@ -605,7 +605,7 @@ trend_mpo <- plot_genes_in_pseudotime(cds_mpo,
 trend_mpo
 ```
 
-### Marker of HSCs: `IRF8`
+### Marker: `IRF8`
 
 ```{r, "Plotting the IRF8", echo=T, eval=T, message=F, warnings=F, fig.width=10, fig.height=7}
 # Extract expression data for IRF8
